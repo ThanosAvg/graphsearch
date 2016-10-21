@@ -1,3 +1,6 @@
+#ifndef BUFFER_H
+#define BUFFER_H
+
 #include <stdint.h>
 #include "list_node.h"
 #include "types.h"
@@ -11,4 +14,6 @@ public:
 private:
 	ListNode** bufferSpace;
 	ptr nextEmptySlot;
-}
+};
+
+#endif

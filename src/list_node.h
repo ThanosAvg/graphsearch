@@ -1,8 +1,9 @@
+#ifndef LIST_NODE_H
+#define LIST_NODE_H
+
 #include <stdint.h>
 
 #include "types.h"
-
-const int N = 10; // number of neighbors per list node
 
 class ListNode{
 public:
@@ -10,7 +11,11 @@ public:
     void addNeighbor(uint32_t id);
     void addEdgeProperty(uint32_t);
 private:
-    uint32_t neighbor[N];     // the ids of the neighbor nodes
-    uint32_t edgeProperty[N]; // property for each edge
-    ptr nextListNode;         // offset of next list node
+    static const int neighborMax = 10; // number of neighbors per list node
+    uint32_t neighbor[neighborMax];       // the ids of the neighbor nodes
+    uint32_t edgeProperty[neighborMax];   // property for each edge
+    ptr nextListNode;           // offset of next list node
+    uint32_t neighborCount;     // number of edges in list node
 };
+
+#endif
