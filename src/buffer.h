@@ -5,6 +5,8 @@
 #include "list_node.h"
 #include "types.h"
 
+const uint32_t INITIAL_BUFFER_SIZE = 2;
+
 class Buffer{
 public:
 	Buffer();
@@ -12,8 +14,9 @@ public:
 	ListNode* getListNode(ptr);
 	~Buffer();
 private:
-	ListNode** bufferSpace;
-	ptr nextEmptySlot;
+	ListNode* bufferSpace_;
+	ptr numberOfNodes_;
+	ptr bufferSize_;
 };
 
 #endif
