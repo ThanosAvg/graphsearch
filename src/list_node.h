@@ -8,14 +8,15 @@
 class ListNode{
 public:
     ListNode();
-    void addNeighbor(uint32_t id);
-    void addEdgeProperty(uint32_t);
+    bool addNeighbor(uint32_t id);
+    bool addEdgeProperty(uint32_t);
+    uint32_t getNeighborCount();
 private:
-    static const int neighborMax = 10; // number of neighbors per list node
-    uint32_t neighbor[neighborMax];       // the ids of the neighbor nodes
-    uint32_t edgeProperty[neighborMax];   // property for each edge
-    ptr nextListNode;           // offset of next list node
-    uint32_t neighborCount;     // number of edges in list node
+    static const int neighborMax_ = 10; // number of neighbors per list node
+    uint32_t neighbors_[neighborMax_];       // the ids of the neighbor nodes
+    uint32_t edgeProperty_[neighborMax_];   // property for each edge
+    ptr nextListNode_;           // offset of next list node
+    uint32_t neighborCount_;     // number of edges in list node
 };
 
 #endif

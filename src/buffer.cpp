@@ -21,12 +21,12 @@ ptr Buffer :: allocNewNode(){
 
 	if(numberOfNodes_>=bufferSize_){
 		/* Double the size of the buffer if needed */
-		cout << "reallocing" <<endl;
+		//cout << "reallocing" <<endl;
 		bufferSpace_=(ListNode*)realloc(bufferSpace_,bufferSize_*sizeof(ListNode)*2);
 		bufferSize_*=2;
 	}
 	ListNode* newNode=new ListNode();
-	memcpy(&bufferSpace_[numberOfNodes_*sizeof(ListNode)],newNode,sizeof(ListNode));
+	memcpy(&bufferSpace_[numberOfNodes_], newNode, sizeof(ListNode));
 	delete newNode;
 	ptr nodePtr=numberOfNodes_;
 	numberOfNodes_++;

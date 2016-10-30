@@ -11,8 +11,8 @@ const uint32_t INITIAL_SIZE = 20;
 /* Helper struct to store nodeid, pointer tuples. */
 class NodeIndexData{
 public:
-    uint32_t nodeid;
-    ptr pointer;
+    uint32_t nodeid_;
+    ptr pointer_;
 };
 
 class NodeIndex{
@@ -24,10 +24,10 @@ public:
     uint32_t getCurrentSize();
     uint32_t getMaxSize();
 private:
-    NodeIndexData* data;
-    Buffer* buffer;
-    uint32_t currentSize;
-    uint32_t maxSize;
+    NodeIndexData* data_;
+    Buffer* buffer_;
+    uint32_t currentSize_;
+    uint32_t maxSize_;
 };
 
 #endif
