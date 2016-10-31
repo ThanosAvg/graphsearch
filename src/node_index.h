@@ -7,13 +7,7 @@
 #include "buffer.h"
 
 const uint32_t INITIAL_SIZE = 20;
-
-/* Helper struct to store nodeid, pointer tuples. */
-class NodeIndexData{
-public:
-    uint32_t nodeid_;
-    ptr pointer_;
-};
+typedef ptr NodeIndexData;
 
 class NodeIndex{
 public:

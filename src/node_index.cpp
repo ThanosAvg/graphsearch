@@ -31,10 +31,7 @@ bool NodeIndex::insertNode(uint32_t nodeId){
     ptr nodeLoc;
     nodeLoc = this->buffer_->allocNewNode();
 
-    // Populate NodeIndexData
-    NodeIndexData nodePair;
-    nodePair.nodeid_ = nodeId;
-    nodePair.pointer_ = nodeLoc;
+    NodeIndexData nodeData = nodeLoc;
 
     // See if we have space in array
     if(nodeId >= this->maxSize_){
@@ -59,7 +56,7 @@ bool NodeIndex::insertNode(uint32_t nodeId){
     }
 
     // Store pointer to index
-    this->data_[nodeId] = nodePair;
+    this->data_[nodeId] = nodeData;
     this->currentSize_++;
     return true;
 }
@@ -69,5 +66,5 @@ ptr NodeIndex::getListHead(uint32_t nodeId){
         // We dont have information for such node
         return PTR_NULL;
     }
-    return this->data_[nodeId].nodeid_;
+    return this->data_[nodeId];
 }

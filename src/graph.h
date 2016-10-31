@@ -1,10 +1,20 @@
+#ifndef GRAPH_H
+#define GRAPH_H
+
 #include "node_index.h"
+
 
 class Graph{
 public:
     Graph();
-    void add(int from, int to);
+    bool add(uint32_t from, uint32_t to);
 private:
-    NodeIndex* incoming;
-    NodeIndex* outcoming;
+    NodeIndex* incomingIndex_;
+    NodeIndex* outgoingIndex_;
+
+    Buffer* incomingBuffer_;
+    Buffer* outgoingBuffer_;
+
+    bool addToPair(NodeIndex* index, Buffer* buffer, uint32_t id);
 };
+#endif

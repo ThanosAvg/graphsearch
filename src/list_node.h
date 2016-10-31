@@ -11,8 +11,10 @@ public:
     bool addNeighbor(uint32_t id);
     bool addEdgeProperty(uint32_t);
     uint32_t getNeighborCount();
+    uint32_t getNeighborMax();
+    ptr getNextListNode();
 private:
-    static const int neighborMax_ = 10; // number of neighbors per list node
+    static const uint32_t neighborMax_ = 10; // number of neighbors per list node
     uint32_t neighbors_[neighborMax_];       // the ids of the neighbor nodes
     uint32_t edgeProperty_[neighborMax_];   // property for each edge
     ptr nextListNode_;           // offset of next list node

@@ -24,3 +24,11 @@ bool ListNode::addEdgeProperty(uint32_t x){
 uint32_t ListNode::getNeighborCount(){
     return this->neighborCount_;
 }
+
+uint32_t ListNode::getNeighborMax(){
+    return this->neighborMax_;
+}
+
+ptr ListNode::getNextListNode(){
+    return this->nextListNode_;
+}

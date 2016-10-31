@@ -3,6 +3,7 @@
 
 bool testInit();
 bool testInsert();
+bool testGetHead();
 
 int main(){
     if(testInit()){
@@ -16,6 +17,12 @@ int main(){
     }
     else{
         std::cout << "Insertion test failed" << std::endl;
+    }
+    if(testGetHead()){
+        std::cout << "Getting list head test passed" << std::endl;
+    }
+    else{
+        std::cout << "Getting list head test failed" << std::endl;
     }
 }
 
@@ -33,14 +40,37 @@ bool testInit(){
 bool testInsert(){
     Buffer* buffer = new Buffer();
     NodeIndex* index = new NodeIndex(buffer);
-    std::cout << index->getMaxSize() << std::endl;
     for(int i = 0; i < 500; i++){
         if(index->insertNode(i) == false){
             return false;
         }
     }
-    std::cout << index->getCurrentSize() << std::endl;
-    std::cout << index->getMaxSize() << std::endl;
+    bool success;
+    if(index->getCurrentSize() == 500){
+        success = true;
+    }
+    else{
+        success = false;
+    }
+    delete index;
+    delete buffer;
+    return success;
+}
 
-    return true;
+bool testGetHead(){
+    Buffer* buffer = new Buffer();
+    NodeIndex* index = new NodeIndex(buffer);
+    for(int i = 0; i < 500; i++){
+        index->insertNode(i);
+    }
+    bool success = true;
+    for(int i = 0; i < 500; i++){
+        if(index->getListHead(i) != i){
+            success = false;
+            break;
+        }
+    }
+    delete index;
+    delete buffer;
+    return success;
 }
