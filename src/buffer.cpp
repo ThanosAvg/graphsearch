@@ -39,7 +39,7 @@ ListNode* Buffer :: getListNode(ptr nodeIndex){
 
 	if(nodeIndex>=bufferSize_ || nodeIndex >= numberOfNodes_)
 		return NULL;
-	return (ListNode*)&(bufferSpace_[nodeIndex*sizeof(ListNode)]);
+	return (ListNode*)&(bufferSpace_[nodeIndex]);
 
 }
 
