@@ -8,6 +8,9 @@ NodeIndex::NodeIndex(Buffer* buffer){
     this->data_ = (NodeIndexData*) malloc(sizeof(NodeIndexData) * INITIAL_SIZE);
     this->currentSize_ = 0;
     this->maxSize_ = INITIAL_SIZE;
+    for(int i = 0; i < this->maxSize_; i++){
+        this->data_[i] = PTR_NULL;
+    }
 }
 
 NodeIndex::~NodeIndex(){
@@ -52,7 +55,11 @@ bool NodeIndex::insertNode(uint32_t nodeId){
 
         // Reallocation was successful, overwrite data
         this->data_ = resized;
+        int oldMax = this->maxSize_;
         this->maxSize_ = this->maxSize_ * resize_factor;
+        for(int i = oldMax; i < this->maxSize_; i++){
+            this->data_[i] = PTR_NULL;
+        }
     }
 
     // Store pointer to index
@@ -62,9 +69,10 @@ bool NodeIndex::insertNode(uint32_t nodeId){
 }
 
 ptr NodeIndex::getListHead(uint32_t nodeId){
-    if(nodeId >= this->currentSize_){
+    if(nodeId >= this->maxSize_){
         // We dont have information for such node
         return PTR_NULL;
     }
+
     return this->data_[nodeId];
 }

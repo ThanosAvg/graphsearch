@@ -23,7 +23,7 @@ bool testLoadFile(){
     uint32_t from = 0, to = 0;
     char status = 0;
     int count = 0;
-    FILE *file = fopen("tinyGraph.txt", "r");
+    FILE *file = fopen("smallGraph.txt", "r");
     if(file == NULL){
         std::cout << "File error" << std::endl;
         return false;
@@ -33,6 +33,7 @@ bool testLoadFile(){
         sscanf(line, "%c", &status);
         if(status != 'S'){
             sscanf(line, "%u %u", &from, &to);
+            std::cout << "(" << from << "," << to << ")" << std::endl;
             graph.add(from, to);
         }
     }

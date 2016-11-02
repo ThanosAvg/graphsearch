@@ -40,3 +40,12 @@ ptr ListNode::getNextListNode(){
 void ListNode::setNextListNode(ptr next){
     this->nextListNode_ = next;
 }
+
+bool ListNode::containsNeighbor(uint32_t id){
+    for(uint32_t i = 0; i < this->neighborCount_; i++){
+        if(this->neighbors_[i] == id){
+            return true;
+        }
+    }
+    return false;
+}

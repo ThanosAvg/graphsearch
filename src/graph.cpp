@@ -37,6 +37,11 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
     // Get actual list node
     ListNode* listNode = buffer->getListNode(lNodePtr);
 
+    // Check if neighbor already exists
+    if(listNode->containsNeighbor(node)){
+        return true; // Its already there
+    }
+
     // Skip if full
     while(listNode->getNeighborMax() == listNode->getNeighborCount()){
         // Check if next list node exists
@@ -52,6 +57,11 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
             listNode->setNextListNode(newAddr);
         }
         listNode = buffer->getListNode(listNode->getNextListNode());
+
+        // Check if neighbor already exists
+        if(listNode->containsNeighbor(node)){
+            return true; // Its already there
+        }
     }
     listNode->addNeighbor(node);
     return true;
