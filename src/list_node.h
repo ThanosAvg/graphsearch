@@ -13,6 +13,7 @@ public:
     uint32_t getNeighborCount();
     uint32_t getNeighborMax();
     ptr getNextListNode();
+    void setNextListNode(ptr next);
 private:
     static const uint32_t neighborMax_ = 10; // number of neighbors per list node
     uint32_t neighbors_[neighborMax_];       // the ids of the neighbor nodes

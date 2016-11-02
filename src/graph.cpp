@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "queue.h"
 
 Graph::Graph(){
     this->incomingBuffer_ = new Buffer();
@@ -21,7 +22,7 @@ long Graph::query(uint32_t from, uint32_t to){
     startQueue.enqueue(from);
     endQueue.enqueue(to);
 
-    
+
 }
 
 bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node){
@@ -32,15 +33,26 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
         index->insertNode(target);
         lNodePtr = index->getListHead(target);
     }
+
     // Get actual list node
     ListNode* listNode = buffer->getListNode(lNodePtr);
 
     // Skip if full
     while(listNode->getNeighborMax() == listNode->getNeighborCount()){
+        // Check if next list node exists
+        if(listNode->getNextListNode() == PTR_NULL){
+            // We create the next list node
+            ptr newAddr;
+            newAddr = buffer->allocNewNode();
+
+            if(newAddr == PTR_NULL){
+                return false; // We failed to allocate
+            }
+
+            listNode->setNextListNode(newAddr);
+        }
         listNode = buffer->getListNode(listNode->getNextListNode());
     }
     listNode->addNeighbor(node);
     return true;
 }
-
-

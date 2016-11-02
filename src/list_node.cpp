@@ -32,3 +32,7 @@ uint32_t ListNode::getNeighborMax(){
 ptr ListNode::getNextListNode(){
     return this->nextListNode_;
 }
+
+void ListNode::setNextListNode(ptr next){
+    this->nextListNode_ = next;
+}
