@@ -21,6 +21,10 @@ bool ListNode::addEdgeProperty(uint32_t x){
     return false;
 }
 
+uint32_t* ListNode::getNeighborsPtr(){
+    return neighbors_;
+}
+
 uint32_t ListNode::getNeighborCount(){
     return this->neighborCount_;
 }

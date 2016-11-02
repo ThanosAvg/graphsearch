@@ -10,6 +10,7 @@ public:
     ListNode();
     bool addNeighbor(uint32_t id);
     bool addEdgeProperty(uint32_t);
+    uint32_t* getNeighborsPtr();
     uint32_t getNeighborCount();
     uint32_t getNeighborMax();
     ptr getNextListNode();
