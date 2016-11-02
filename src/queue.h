@@ -16,8 +16,8 @@ public:
 	bool isEmpty();
 	~Queue();
 private:
-	QueueNode* start;
-	QueueNode* end;
+	QueueNode* start_;
+	QueueNode* end_;
 };
 
 #endif

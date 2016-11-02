@@ -2,50 +2,50 @@
 
 #include "queue.h"
 
-Queue::Queue() {
+Queue::Queue(){
 	/*  Queue Constructor */
-	start=NULL;
-	end=NULL;
+	start_=NULL;
+	end_=NULL;
 }
 
-void Queue::enqueue(uint32_t node) {
+void Queue::enqueue(uint32_t node){
 	/* Add a node in the end of the queue */
 	QueueNode* temp=new QueueNode();
 	temp->node=node;
 	temp->next=NULL;
-	if (start==NULL) {
-		start=temp;
+	if (start_==NULL) {
+		start_=temp;
 	}
 	else {
-		end->next=temp;
+		end_->next=temp;
 	}
-	end=temp;
+	end_=temp;
 }
 
-uint32_t Queue::dequeue() {
+uint32_t Queue::dequeue(){
 	/* Pop the first node */
 	uint32_t targetNode;
 	QueueNode* temp;
-	if(start!=NULL){
-		targetNode=start->node;
-		temp=start;
-		start=start->next;
+	if(start_!=NULL){
+		targetNode=start_->node;
+		temp=start_;
+		start_=start_->next;
 		delete temp;
 	}
 	return targetNode;
 }
 
-bool Queue::isEmpty() {
+bool Queue::isEmpty(){
 	/* Check if empty */
-	return start==NULL;
+	return start_==NULL;
 }
 
-Queue::~Queue() {
+Queue::~Queue(){
 	/* Queue destructor */
 	QueueNode* temp;
 	while(!this->isEmpty()){
-		temp=start;
-		start=start->next;
+		temp=start_;
+		start_=start_->next;
 		delete temp;
 	}
 }
