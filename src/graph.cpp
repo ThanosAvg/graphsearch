@@ -9,18 +9,28 @@ Graph::Graph(){
 
 bool Graph::add(uint32_t from, uint32_t to){
     bool suc1, suc2;
-    suc1 = this->addToPair(this->incomingIndex_, this->incomingBuffer_, to);
-    suc2 = this->addToPair(this->outgoingIndex_, this->outgoingBuffer_, from);
+    suc1 = this->addToPair(this->incomingIndex_, this->incomingBuffer_, to, from);
+    suc2 = this->addToPair(this->outgoingIndex_, this->outgoingBuffer_, from, to);
     return suc1 && suc2;
 }
 
-bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t id){
+long Graph::query(uint32_t from, uint32_t to){
+    Queue startQueue;
+    Queue endQueue;
+
+    startQueue.enqueue(from);
+    endQueue.enqueue(to);
+
+    
+}
+
+bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node){
     // Check if node exists
-    ptr lNodePtr = index->getListHead(id);
+    ptr lNodePtr = index->getListHead(target);
     if(lNodePtr == PTR_NULL){
         // Create node
-        index->insertNode(id);
-        lNodePtr = index->getListHead(id);
+        index->insertNode(target);
+        lNodePtr = index->getListHead(target);
     }
     // Get actual list node
     ListNode* listNode = buffer->getListNode(lNodePtr);
@@ -29,6 +39,8 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t id){
     while(listNode->getNeighborMax() == listNode->getNeighborCount()){
         listNode = buffer->getListNode(listNode->getNextListNode());
     }
-    listNode->addNeighbor(id);
+    listNode->addNeighbor(node);
     return true;
 }
+
+
