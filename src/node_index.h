@@ -6,7 +6,7 @@
 #include "types.h"
 #include "buffer.h"
 
-const uint32_t INITIAL_SIZE = 20;
+const uint32_t INITIAL_SIZE = 1024;
 typedef ptr NodeIndexData;
 
 class NodeIndex{

@@ -8,6 +8,7 @@ public:
     Graph();
     bool add(uint32_t from, uint32_t to);
     long query(uint32_t from, uint32_t to);
+    ~Graph();
 private:
     NodeIndex* incomingIndex_;
     NodeIndex* outgoingIndex_;

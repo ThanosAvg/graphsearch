@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <iostream>
 #include <limits.h>
+#include <queue>
+#include <list>
+#include <algorithm>
 
 using namespace std;
 
@@ -22,19 +25,17 @@ bool Graph::add(uint32_t from, uint32_t to){
 }
 
 long Graph::query(uint32_t from, uint32_t to){
-    if(from>=this->outgoingIndex_->getCurrentSize() || to>=this->outgoingIndex_->getCurrentSize())
+
+    if(from>=this->outgoingIndex_->getMaxSize() || to>=this->outgoingIndex_->getMaxSize())
         return -1;
+
     Queue startQueue;
-    bool* startVisited=(bool*)malloc(this->outgoingIndex_->getCurrentSize()*sizeof(bool));
-    cout << "CURRENT LENGTH OUTGOIND:" << this->outgoingIndex_->getCurrentSize() << endl;
-    cout << "CURRENT LENGTH INGOING:" << this->incomingIndex_->getCurrentSize() << endl;
-    for(int i=0;i<this->outgoingIndex_->getCurrentSize();i++)
+    bool* startVisited=new bool[this->outgoingIndex_->getMaxSize()];
+    for(int i=0;i<this->outgoingIndex_->getMaxSize();i++)
         startVisited[i]=false;
-    Queue endQueue;
 
     startQueue.enqueue(from);
     startQueue.enqueue(UINT_MAX-1);
-    endQueue.enqueue(to);
 
     uint32_t currentNode;
     long currentLength=0;
@@ -42,10 +43,11 @@ long Graph::query(uint32_t from, uint32_t to){
     ListNode* currentListNode;
     ptr currentNodePtr;
     uint32_t* nodeNeighbors;
+
     while(!startQueue.isEmpty()){
-        //cout << "OK1" << endl;
         currentNode=startQueue.dequeue();
-        //cout << "OK2" << endl;
+
+		//Check if we enter next level
         if(currentNode==UINT_MAX-1){
             currentLength++;
             if(startQueue.isEmpty())
@@ -53,42 +55,41 @@ long Graph::query(uint32_t from, uint32_t to){
             startQueue.enqueue(UINT_MAX-1);
             currentNode=startQueue.dequeue();
         }
-        //cout << "OK3" << endl;
-        //cout << "CURRENT NODE:" << currentNode << endl;
+		
+		//If current node is not visited
         if(startVisited[currentNode]==false){
-            //cout << "OK3" << endl;
+            //cout << "CURNODE:" << currentNode << endl;
             startVisited[currentNode]=true;
             currentNodePtr=outgoingIndex->getListHead(currentNode);
             if(currentNodePtr==PTR_NULL){
-                //cout << "uknown node:" << currentNode << endl;
                 continue;
             }
             currentListNode=outgoingBuffer_->getListNode(currentNodePtr);
-            //cout << "OK4" << endl;
+            
+            //Push node's neighbors that are not in closed set
             while(true){
                 nodeNeighbors=currentListNode->getNeighborsPtr();
+                //For everu neighbors inside the current list node
                 for(int i=0;i<currentListNode->getNeighborCount();i++){
-                    //cout << "neighbor:" << i << "->" << nodeNeighbors[i] << endl;
+                    //If current neighbor is the target one:return
                     if(nodeNeighbors[i]==to){
-                        free(startVisited);
+                        delete startVisited;
                         return currentLength+1;
                     }
-                    if(nodeNeighbors[i]<0 || nodeNeighbors[i]>1000000)
-                        cout << "HEREEEEEEEEEEEEEEEEEEEEEEEEEEE0000:" << nodeNeighbors[i] << endl;
-                    startQueue.enqueue(nodeNeighbors[i]);
+                    //If current neighbor is already in closed set do not push him 
+                    if(startVisited[nodeNeighbors[i]]==false)
+                        startQueue.enqueue(nodeNeighbors[i]);
                 }
+                //Get the next list node pointer from the current one
                 currentNodePtr=currentListNode->getNextListNode();
                 if(currentNodePtr==PTR_NULL)
                     break;
                 else
                     currentListNode=outgoingBuffer_->getListNode(currentNodePtr);
             }
-            //cout << "OK5" << endl;
         }
     }
-    //cout << "OK4" << endl;
-    free(startVisited);
-    //cout << "OK5" << endl;
+    delete startVisited;
     return -1;
 }
 
@@ -134,4 +135,11 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
     }
     listNode->addNeighbor(node);
     return true;
+}
+
+Graph::~Graph(){
+    delete incomingBuffer_;
+    delete outgoingBuffer_;
+    delete incomingIndex_;
+    delete outgoingIndex_;
 }

@@ -57,10 +57,10 @@ bool testLoadFile(){
         else if(status == 'Q'){
             sscanf(line, "%*c %u %u", &from, &to);
             //std::cout << "query:" << "(" << from << "," << to << ")" << std::endl;
-            std::cout << "result:" << graph.query(from, to) << std::endl;
+            std::cout << graph.query(from, to) << std::endl;
         }
         else if(status == 'F'){
-            std::cout << "RIPH"  << std::endl;
+            //std::cout << "RIPH"  << std::endl;
         }
         else if(status == 'S'){
             std::cout << "End of file,quitting..."  << std::endl;

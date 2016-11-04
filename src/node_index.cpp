@@ -2,6 +2,7 @@
 
 #include "node_index.h"
 #include "buffer.h"
+#include <iostream>
 
 NodeIndex::NodeIndex(Buffer* buffer){
     this->buffer_ = buffer;
@@ -53,6 +54,8 @@ bool NodeIndex::insertNode(uint32_t nodeId){
             return false;
         }
 
+        //std::cout << "REALLOC GOOD MAN,LAST SIZE:"<< this->maxSize_ << " ,NEW SIZE:" << this->maxSize_ * resize_factor <<std::endl;
+
         // Reallocation was successful, overwrite data
         this->data_ = resized;
         int oldMax = this->maxSize_;
@@ -65,6 +68,7 @@ bool NodeIndex::insertNode(uint32_t nodeId){
     // Store pointer to index
     this->data_[nodeId] = nodeData;
     this->currentSize_++;
+    //std::cout << "index-after data ok" <<std::endl;
     return true;
 }
 
