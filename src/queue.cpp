@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "queue.h"
+#include <iostream>
 
 Queue::Queue(){
 	/*  Queue Constructor */
@@ -10,7 +11,7 @@ Queue::Queue(){
 
 void Queue::enqueue(uint32_t node){
 	/* Add a node in the end of the queue */
-	QueueNode* temp=new QueueNode();
+	struct QueueNode* temp=new QueueNode;
 	temp->node=node;
 	temp->next=NULL;
 	if (start_==NULL) {
@@ -25,11 +26,14 @@ void Queue::enqueue(uint32_t node){
 uint32_t Queue::dequeue(){
 	/* Pop the first node */
 	uint32_t targetNode;
-	QueueNode* temp;
+	struct QueueNode* temp=new QueueNode;
 	if(start_!=NULL){
-		targetNode=start_->node;
 		temp=start_;
-		start_=start_->next;
+		targetNode=temp->node;
+		start_=temp->next;
+		if(start_==NULL)
+            end_=NULL;
+		std::cout << "node:" << targetNode << std::endl;
 		delete temp;
 	}
 	return targetNode;

@@ -21,8 +21,11 @@ ptr Buffer :: allocNewNode(){
 
 	if(numberOfNodes_>=bufferSize_){
 		/* Double the size of the buffer if needed */
-		//cout << "reallocing" <<endl;
 		bufferSpace_=(ListNode*)realloc(bufferSpace_,bufferSize_*sizeof(ListNode)*2);
+		if(bufferSpace_==NULL){
+			cout << "BUFFER OVERFLOW" << endl;
+			return PTR_NULL;
+		}
 		bufferSize_*=2;
 	}
 	ListNode* newNode=new ListNode();

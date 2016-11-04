@@ -5,7 +5,7 @@
 
 struct QueueNode{
 	uint32_t node;
-	QueueNode* next;
+	struct QueueNode* next;
 };
 
 class Queue{

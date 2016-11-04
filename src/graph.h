@@ -3,7 +3,6 @@
 
 #include "node_index.h"
 
-
 class Graph{
 public:
     Graph();

@@ -5,7 +5,7 @@
 #include "list_node.h"
 #include "types.h"
 
-const uint32_t INITIAL_BUFFER_SIZE = 2;
+const uint32_t INITIAL_BUFFER_SIZE = 1024;
 
 class Buffer{
 public:
