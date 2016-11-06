@@ -5,9 +5,14 @@
 
 #include "types.h"
 #include "buffer.h"
+#include "hashtable.h"
 
-const uint32_t INITIAL_SIZE = 1024;
-typedef ptr NodeIndexData;
+//typedef ptr NodeIndexData;
+struct NodeIndexData{
+    ptr nodeLoc_;
+    uint32_t neighborCount_;
+    ptr lastFree_;
+};
 
 class NodeIndex{
 public:
@@ -15,13 +20,16 @@ public:
     ~NodeIndex();
     bool insertNode(uint32_t nodeId);
     ptr getListHead(uint32_t nodeId);
+    ptr getListTail(uint32_t nodeId);
+    void setListTail(uint32_t nodeId, ptr tail);
+    uint32_t getNeighborCount(uint32_t nodeId);
     uint32_t getCurrentSize();
     uint32_t getMaxSize();
+    void incrementNeighbors(uint32_t nodeId);
 private:
-    NodeIndexData* data_;
+    static const long hashBuckets_ = 1000000;
     Buffer* buffer_;
-    uint32_t currentSize_;
-    uint32_t maxSize_;
+    Hash<NodeIndexData>* hash_;
 };
 
 #endif

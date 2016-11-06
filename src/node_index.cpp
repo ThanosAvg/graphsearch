@@ -6,24 +6,19 @@
 
 NodeIndex::NodeIndex(Buffer* buffer){
     this->buffer_ = buffer;
-    this->data_ = (NodeIndexData*) malloc(sizeof(NodeIndexData) * INITIAL_SIZE);
-    this->currentSize_ = 0;
-    this->maxSize_ = INITIAL_SIZE;
-    for(int i = 0; i < this->maxSize_; i++){
-        this->data_[i] = PTR_NULL;
-    }
+    this->hash_ = new Hash<NodeIndexData>(this->hashBuckets_);
 }
 
 NodeIndex::~NodeIndex(){
-    free(data_);
+    delete this->hash_;
 }
 
 uint32_t NodeIndex::getCurrentSize(){
-    return this->currentSize_;
+    return this->hash_->getSize();
 }
 
 uint32_t NodeIndex::getMaxSize(){
-    return this->maxSize_;
+    return getCurrentSize(); // TODO: deprecate this
 }
 
 bool NodeIndex::insertNode(uint32_t nodeId){
@@ -33,50 +28,71 @@ bool NodeIndex::insertNode(uint32_t nodeId){
 
     // Create new node in buffer
     ptr nodeLoc;
+    uint32_t neighborCount = 0;
     nodeLoc = this->buffer_->allocNewNode();
 
-    NodeIndexData nodeData = nodeLoc;
+    NodeIndexData nodeData;
+    nodeData.nodeLoc_ = nodeLoc;
+    nodeData.neighborCount_ = 0;
+    nodeData.lastFree_ = nodeLoc;
 
-    // See if we have space in array
-    if(nodeId >= this->maxSize_){
-        // We have to give more space
-        NodeIndexData* resized;
-        // We add +1 in memory calculations because node index array
-        // is 0-indexed so id 20 gets in the 21st position etc.
-        int resize_factor = (nodeId + 1) / this->maxSize_;
-        if((nodeId + 1) % this->maxSize_ != 0){ // If we have remainder we need one more
-            resize_factor++;
-        }
-        resized = (NodeIndexData*) realloc(this->data_, this->maxSize_ * resize_factor * sizeof(NodeIndexData));
-        if(resized == NULL){
-            // Realloc failed, free resources and fail
-            free(this->data_);
-            return false;
-        }
-
-        //std::cout << "REALLOC GOOD MAN,LAST SIZE:"<< this->maxSize_ << " ,NEW SIZE:" << this->maxSize_ * resize_factor <<std::endl;
-
-        // Reallocation was successful, overwrite data
-        this->data_ = resized;
-        int oldMax = this->maxSize_;
-        this->maxSize_ = this->maxSize_ * resize_factor;
-        for(int i = oldMax; i < this->maxSize_; i++){
-            this->data_[i] = PTR_NULL;
-        }
-    }
-
-    // Store pointer to index
-    this->data_[nodeId] = nodeData;
-    this->currentSize_++;
-    //std::cout << "index-after data ok" <<std::endl;
+    this->hash_->add(nodeData, nodeId); // Data , Key pair
     return true;
 }
 
 ptr NodeIndex::getListHead(uint32_t nodeId){
-    if(nodeId >= this->maxSize_){
-        // We dont have information for such node
+    ResultCode rescode;
+    NodeIndexData element = this->hash_->get(nodeId, rescode);
+
+    if(rescode == NOT_FOUND){
         return PTR_NULL;
     }
 
-    return this->data_[nodeId];
+    return element.nodeLoc_;
+}
+
+ptr NodeIndex::getListTail(uint32_t nodeId){
+    ResultCode rescode;
+    NodeIndexData element = this->hash_->get(nodeId, rescode);
+
+    if(rescode == NOT_FOUND){
+        return PTR_NULL;
+    }
+
+    return element.lastFree_;
+}
+
+uint32_t NodeIndex::getNeighborCount(uint32_t nodeId){
+    ResultCode rescode;
+    NodeIndexData element = this->hash_->get(nodeId, rescode);
+
+    if(rescode == NOT_FOUND){
+        return 0;
+    }
+
+    return element.neighborCount_;
+}
+
+void NodeIndex::incrementNeighbors(uint32_t nodeId){
+    ResultCode rescode;
+    NodeIndexData element = this->hash_->get(nodeId, rescode);
+
+    if(rescode == NOT_FOUND){
+        return;
+    }
+
+    element.neighborCount_ ++;
+    this->hash_->update(element, nodeId);
+}
+
+void NodeIndex::setListTail(uint32_t nodeId, ptr tail){
+    ResultCode rescode;
+    NodeIndexData element = this->hash_->get(nodeId, rescode);
+
+    if(rescode == NOT_FOUND){
+        return;
+    }
+
+    element.lastFree_ = tail;
+    this->hash_->update(element, nodeId);
 }

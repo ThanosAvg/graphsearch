@@ -16,6 +16,6 @@ private:
     Buffer* incomingBuffer_;
     Buffer* outgoingBuffer_;
 
-    bool addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node);
+    bool addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node, bool checkDuplicates);
 };
 #endif

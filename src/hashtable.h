@@ -33,8 +33,11 @@ template <class T>
 class Hash{
 public:
     Hash(uint32_t bucket_number);
+    ~Hash();
     T get(hashkey_t key, ResultCode& rescode);
+    uint32_t getSize();
     void add(T data, hashkey_t key);
+    ResultCode update(T data, hashkey_t key);
     void iterate(void (*action)(T));
 private:
     uint32_t hash_(hashkey_t key);

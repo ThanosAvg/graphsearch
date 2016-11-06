@@ -21,6 +21,14 @@ int main(){
         }
         std::cout << "Retrieved: " << j << std::endl;
     }
+    for(int i = 1000000; i < 2000000; i++){
+        ResultCode rescode;
+        h->get(i, rescode);
+        if(rescode == FOUND){
+            test1 = false;
+            break;
+        }
+    }
     test1 = true;
     if(test1){
         std::cout << "Insert test passed" << std::endl;

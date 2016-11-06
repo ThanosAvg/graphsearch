@@ -44,10 +44,24 @@ Hash<T>::Hash(uint32_t bucket_number){
     this->bucket_number_ = bucket_number;
     this->size_ = 0;
     buckets_ = new Bucket<T>*[this->bucket_number_];
-    //this->buckets_ = (Bucket<T>*) malloc(this->bucket_number_ * sizeof(Bucket<T>));
     for(long i = 0; i < this->bucket_number_; i++){
         buckets_[i] = 0;
     }
+}
+
+template <class T>
+Hash<T>::~Hash(){
+    Bucket<T>* cursor;
+    Bucket<T>* prev;
+    for(long i = 0; i < this->bucket_number_; i++){
+        cursor = this->buckets_[i];
+        while(cursor != 0){
+            prev = cursor;
+            cursor = cursor->getNext();
+            delete prev;
+        }
+    }
+    delete[] this->buckets_;
 }
 
 template <class T>
@@ -63,7 +77,8 @@ T Hash<T>::get(hashkey_t key, ResultCode& rescode){
         current = current->getNext();
     }
     rescode = NOT_FOUND;
-    return 0; // Exit point; NOT FOUND
+    T blank = T();
+    return blank; // Exit point; NOT FOUND
 }
 
 template <class T>
@@ -91,6 +106,21 @@ void Hash<T>::add(T data, hashkey_t key){
 }
 
 template <class T>
+ResultCode Hash<T>::update(T data, hashkey_t key){
+    long bucket_index;
+    bucket_index = this->hash_(key);
+    Bucket<T>* current = this->buckets_[bucket_index];
+    while(current != 0){
+        if(current->getKey() == key){
+            current->setData(data);
+            return FOUND;
+        }
+        current = current->getNext();
+    }
+    return NOT_FOUND;
+}
+
+template <class T>
 uint32_t Hash<T>::hash_(hashkey_t key){
     // Based on http://stackoverflow.com/a/12996028
     uint32_t x = key;
@@ -100,4 +130,9 @@ uint32_t Hash<T>::hash_(hashkey_t key){
     x = (x >> 16) ^ x;
     */
     return x % this->bucket_number_;
+}
+
+template <class T>
+uint32_t Hash<T>::getSize(){
+    return this->size_;
 }

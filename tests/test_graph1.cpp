@@ -7,10 +7,10 @@ bool testLoadFile();
 
 int main(){
     if(testLoadFile()){
-        std::cout << "Loading graph from file success" << std::endl;
+        std::cout << "Loading graph from file success!" << std::endl;
     }
     else{
-        std::cout << "Loading graph from file failed" << std::endl;
+        std::cout << "Loading graph from file failed!" << std::endl;
     }
 }
 
@@ -24,7 +24,7 @@ bool testLoadFile(){
     uint32_t from = 0, to = 0;
     char status = 0;
     int count = 0;
-    FILE *file = fopen("small/smallGraph.txt", "r");
+    FILE *file = fopen("medium/mediumGraph.txt", "r");
     if(file == NULL){
         std::cout << "File error" << std::endl;
         return false;
@@ -41,7 +41,7 @@ bool testLoadFile(){
 
     fclose(file);
 
-    file = fopen("small/smallWorkload_FINAL.txt", "r");
+    file = fopen("medium/mediumWorkload_FINAL.txt", "r");
     if(file == NULL){
         std::cout << "File error" << std::endl;
         return false;
@@ -59,6 +59,7 @@ bool testLoadFile(){
             sscanf(line, "%*c %u %u", &from, &to);
             //std::cout << "query:" << "(" << from << "," << to << ")" << std::endl;
             std::cout << graph.query(from, to) << std::endl;
+            //graph.query(from, to);
         }
         else if(status == 'F'){
             //std::cout << "RIPH"  << std::endl;
