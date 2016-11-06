@@ -1,6 +1,7 @@
 #include "../src/graph.h"
 #include <iostream>
 #include <stdio.h>
+#include <cstdlib>
 
 bool testLoadFile();
 
@@ -74,5 +75,6 @@ bool testLoadFile(){
 
     fclose(file);
 
+    free(line);
     return true;
 }
