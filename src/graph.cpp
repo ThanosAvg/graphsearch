@@ -46,8 +46,8 @@ long Graph::query(uint32_t from, uint32_t to){
     //std::fill(startVisited, startVisited+outIndexSize, false);
     //bool* endVisited=new bool[inIndexSize];
     //std::fill(endVisited, endVisited+inIndexSize, false);
-    Hash<uint32_t>* startVisited = new Hash<uint32_t>(100000);
-    Hash<uint32_t>* endVisited = new Hash<uint32_t>(100000);
+    Hash<uint32_t>* startVisited = new Hash<uint32_t>(128);
+    Hash<uint32_t>* endVisited = new Hash<uint32_t>(128);
     ResultCode resCodeStart, resCodeEnd;
 
     startQueue.enqueue(from);
@@ -63,6 +63,8 @@ long Graph::query(uint32_t from, uint32_t to){
     ptr startCurrentNodePtr,endCurrentNodePtr;
     uint32_t* startNodeNeighbors;
     uint32_t* endNodeNeighbors;
+    uint32_t startCurrentNeighbors=0;
+    uint32_t endCurrentNeighbors=0;
 
     NodeIndex* outgoingIndex=this->outgoingIndex_;
     NodeIndex* incomingIndex=this->incomingIndex_;
@@ -76,106 +78,118 @@ long Graph::query(uint32_t from, uint32_t to){
 
     while(!startQueue.isEmpty() && !endQueue.isEmpty()){
 
-        while(startCurrentNode!=UINT_MAX-1){
+    	if(startCurrentNeighbors<=endCurrentNeighbors){
+	    	startCurrentNeighbors=0;
 
-    		//If current node is not visited
-            startVisited->get(startCurrentNode, resCodeStart);
-            if(resCodeStart == NOT_FOUND){
-                //cout << "CURNODE:" << currentNode << endl;
-                //startVisited[startCurrentNode]=true;
-                startVisited->add(startCurrentNode, startCurrentNode);
-                startCurrentNodePtr=outgoingIndex->getListHead(startCurrentNode);
-                if(startCurrentNodePtr==PTR_NULL){
-                    continue;
-                }
-                startCurrentListNode=outgoingBuffer_->getListNode(startCurrentNodePtr);
+	        while(startCurrentNode!=UINT_MAX-1){
 
-                //Push node's neighbors that are not in closed set
-                while(true){
-                    startNodeNeighbors=startCurrentListNode->getNeighborsPtr();
-                    //For every neighbors inside the current list node
-                    for(int i=0;i<startCurrentListNode->getNeighborCount();i++){
-                        //If current neighbor is the target one:return
-                        endVisited->get(startNodeNeighbors[i], resCodeEnd);
-                        if(resCodeEnd == FOUND){
-                            delete startVisited;
-                            delete endVisited;
-                            return startCurrentLength+endCurrentLength;
-                        }
-                        //If current neighbor is already in closed set do not push him
-                        startVisited->get(startNodeNeighbors[i], resCodeStart);
-                        if(resCodeStart == NOT_FOUND)
-                            startQueue.enqueue(startNodeNeighbors[i]);
-                    }
-                    //Get the next list node pointer from the current one
-                    startCurrentNodePtr=startCurrentListNode->getNextListNode();
-                    if(startCurrentNodePtr==PTR_NULL)
-                        break;
-                    else
-                        startCurrentListNode=outgoingBuffer_->getListNode(startCurrentNodePtr);
-                }
-            }
-            startCurrentNode=startQueue.dequeue();
-        }
+	    		//If current node is not visited
+	            startVisited->get(startCurrentNode, resCodeStart);
+	            if(resCodeStart == NOT_FOUND){
+	                //cout << "CURNODE:" << currentNode << endl;
+	                //startVisited[startCurrentNode]=true;
+	                startVisited->add(startCurrentNode, startCurrentNode);
+	                startCurrentNodePtr=outgoingIndex->getListHead(startCurrentNode);
+	                if(startCurrentNodePtr==PTR_NULL){
+	                    continue;
+	                }
+	                startCurrentListNode=outgoingBuffer_->getListNode(startCurrentNodePtr);
 
-        //Update for next level
-        startCurrentLength++;
-        if(startQueue.isEmpty())
-            break;
-        startQueue.enqueue(UINT_MAX-1);
-        startCurrentNode=startQueue.dequeue();
+	                //Push node's neighbors that are not in closed set
+	                while(true){
+	                    startNodeNeighbors=startCurrentListNode->getNeighborsPtr();
+	                    //For every neighbors inside the current list node
+	                    for(int i=0;i<startCurrentListNode->getNeighborCount();i++){
+	                        //If current neighbor is the target one:return
+	                        endVisited->get(startNodeNeighbors[i], resCodeEnd);
+	                        if(resCodeEnd == FOUND){
+	                            delete startVisited;
+	                            delete endVisited;
+	                            return startCurrentLength+endCurrentLength;
+	                        }
+	                        //If current neighbor is already in closed set do not push him
+	                        startVisited->get(startNodeNeighbors[i], resCodeStart);
+	                        if(resCodeStart == NOT_FOUND){
+	                            startQueue.enqueue(startNodeNeighbors[i]);
+	                            startCurrentNeighbors++;
+	                        }
+	                    }
+	                    //Get the next list node pointer from the current one
+	                    startCurrentNodePtr=startCurrentListNode->getNextListNode();
+	                    if(startCurrentNodePtr==PTR_NULL)
+	                        break;
+	                    else
+	                        startCurrentListNode=outgoingBuffer_->getListNode(startCurrentNodePtr);
+	                }
+	            }
+	            startCurrentNode=startQueue.dequeue();
+	        }
+	     
 
-        //*****CODE FOR END SIDE****
+	        //Update for next level
+	        startCurrentLength++;
+	        if(startQueue.isEmpty())
+	            break;
+	        startQueue.enqueue(UINT_MAX-1);
+	        startCurrentNode=startQueue.dequeue();
+    	}
 
-        while(endCurrentNode!=UINT_MAX-1){
+        //End side implementation
 
-    		//If current node is not visited
-            endVisited->get(endCurrentNode, resCodeEnd);
-            if(resCodeEnd == NOT_FOUND){
-                //cout << "CURNODE:" << currentNode << endl;
-                //endVisited[endCurrentNode]=true;
-                endVisited->add(endCurrentNode, endCurrentNode);
-                endCurrentNodePtr=incomingIndex->getListHead(endCurrentNode);
-                if(endCurrentNodePtr==PTR_NULL){
-                    continue;
-                }
-                endCurrentListNode=incomingBuffer_->getListNode(endCurrentNodePtr);
+    	if(endCurrentNeighbors<startCurrentNeighbors){
+	    	endCurrentNeighbors=0;
 
-                //Push node's neighbors that are not in closed set
-                while(true){
-                    endNodeNeighbors=endCurrentListNode->getNeighborsPtr();
-                    //For every neighbors inside the current list node
-                    for(int i=0;i<endCurrentListNode->getNeighborCount();i++){
-                        //If current neighbor is the target one:return
-                        startVisited->get(endNodeNeighbors[i], resCodeStart);
-                        if(resCodeStart == FOUND){
-                            delete startVisited;
-                            delete endVisited;
-                            return startCurrentLength+endCurrentLength;
-                        }
-                        //If current neighbor is already in closed set do not push him
-                        endVisited->get(endNodeNeighbors[i], resCodeEnd);
-                        if(resCodeEnd == NOT_FOUND)
-                            endQueue.enqueue(endNodeNeighbors[i]);
-                    }
-                    //Get the next list node pointer from the current one
-                    endCurrentNodePtr=endCurrentListNode->getNextListNode();
-                    if(endCurrentNodePtr==PTR_NULL)
-                        break;
-                    else
-                        endCurrentListNode=incomingBuffer_->getListNode(endCurrentNodePtr);
-                }
-            }
-            endCurrentNode=endQueue.dequeue();
-        }
+	        while(endCurrentNode!=UINT_MAX-1){
 
-        //Update for next level
-        endCurrentLength++;
-        if(endQueue.isEmpty())
-            break;
-        endQueue.enqueue(UINT_MAX-1);
-        endCurrentNode=endQueue.dequeue();
+	    		//If current node is not visited
+	            endVisited->get(endCurrentNode, resCodeEnd);
+	            if(resCodeEnd == NOT_FOUND){
+	                //cout << "CURNODE:" << currentNode << endl;
+	                //endVisited[endCurrentNode]=true;
+	                endVisited->add(endCurrentNode, endCurrentNode);
+	                endCurrentNodePtr=incomingIndex->getListHead(endCurrentNode);
+	                if(endCurrentNodePtr==PTR_NULL){
+	                    continue;
+	                }
+	                endCurrentListNode=incomingBuffer_->getListNode(endCurrentNodePtr);
 
+	                //Push node's neighbors that are not in closed set
+	                while(true){
+	                    endNodeNeighbors=endCurrentListNode->getNeighborsPtr();
+	                    //For every neighbors inside the current list node
+	                    for(int i=0;i<endCurrentListNode->getNeighborCount();i++){
+	                        //If current neighbor is the target one:return
+	                        startVisited->get(endNodeNeighbors[i], resCodeStart);
+	                        if(resCodeStart == FOUND){
+	                            delete startVisited;
+	                            delete endVisited;
+	                            return startCurrentLength+endCurrentLength;
+	                        }
+	                        //If current neighbor is already in closed set do not push him
+	                        endVisited->get(endNodeNeighbors[i], resCodeEnd);
+	                        if(resCodeEnd == NOT_FOUND){
+	                            endQueue.enqueue(endNodeNeighbors[i]);
+	                            endCurrentNeighbors++;
+	                        }
+	                    }
+	                    //Get the next list node pointer from the current one
+	                    endCurrentNodePtr=endCurrentListNode->getNextListNode();
+	                    if(endCurrentNodePtr==PTR_NULL)
+	                        break;
+	                    else
+	                        endCurrentListNode=incomingBuffer_->getListNode(endCurrentNodePtr);
+	                }
+	            }
+	            endCurrentNode=endQueue.dequeue();
+	        }
+
+	        //Update for next level
+	        endCurrentLength++;
+	        if(endQueue.isEmpty())
+	            break;
+	        endQueue.enqueue(UINT_MAX-1);
+	        endCurrentNode=endQueue.dequeue();
+	    }
     }
     delete startVisited;
     delete endVisited;
