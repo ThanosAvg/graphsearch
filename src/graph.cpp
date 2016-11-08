@@ -4,9 +4,6 @@
 #include <stdio.h>
 #include <iostream>
 #include <limits.h>
-#include <queue>
-#include <list>
-#include <algorithm>
 
 using namespace std;
 
@@ -43,8 +40,8 @@ long Graph::query(uint32_t from, uint32_t to){
 
     Queue startQueue, endQueue;
 
-    Hash<uint32_t>* startVisited = new Hash<uint32_t>(128);
-    Hash<uint32_t>* endVisited = new Hash<uint32_t>(128);
+    Hash<uint32_t>* startVisited = new Hash<uint32_t>((this)->closedSetSize_);
+    Hash<uint32_t>* endVisited = new Hash<uint32_t>((this)->closedSetSize_);
     ResultCode resCodeStart, resCodeEnd;
 
     startQueue.enqueue(from);
@@ -81,8 +78,6 @@ long Graph::query(uint32_t from, uint32_t to){
                 //If current node is not visited
                 startVisited->get(startCurrentNode, resCodeStart);
                 if(resCodeStart == NOT_FOUND){
-                    //cout << "CURNODE:" << currentNode << endl;
-                    //startVisited[startCurrentNode]=true;
                     startVisited->add(startCurrentNode, startCurrentNode);
                     startCurrentNodePtr=outgoingIndex->getListHead(startCurrentNode);
                     if(startCurrentNodePtr == PTR_NULL){

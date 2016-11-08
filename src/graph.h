@@ -16,6 +16,8 @@ public:
     // path exists or invalid input is given
     long query(uint32_t from, uint32_t to);
 private:
+    static const uint32_t closedSetSize_ = 131;
+
     NodeIndex* incomingIndex_;
     NodeIndex* outgoingIndex_;
 

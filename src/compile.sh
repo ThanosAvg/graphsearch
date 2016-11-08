@@ -1,0 +1,1 @@
+g++ -O2 -o gsp main.cpp graph.cpp queue.cpp buffer.cpp list_node.cpp node_index.cpp hashtable.h
