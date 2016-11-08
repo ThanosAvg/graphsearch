@@ -1,8 +1,6 @@
 #include <stdlib.h>
-
 #include "node_index.h"
 #include "buffer.h"
-#include <iostream>
 
 NodeIndex::NodeIndex(Buffer* buffer){
     this->buffer_ = buffer;
@@ -28,7 +26,6 @@ bool NodeIndex::insertNode(uint32_t nodeId){
 
     // Create new node in buffer
     ptr nodeLoc;
-    uint32_t neighborCount = 0;
     nodeLoc = this->buffer_->allocNewNode();
 
     NodeIndexData nodeData;

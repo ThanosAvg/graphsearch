@@ -6,9 +6,15 @@
 class Graph{
 public:
     Graph();
-    bool add(uint32_t from, uint32_t to);
-    long query(uint32_t from, uint32_t to);
     ~Graph();
+
+    // Takes 2 node ids and inserts them to the graph.
+    // Returns false if insertion fails, true otherwise
+    bool add(uint32_t from, uint32_t to);
+
+    // Takes 2 node ids and calculates the cost of the path between them, or -1 if either no
+    // path exists or invalid input is given
+    long query(uint32_t from, uint32_t to);
 private:
     NodeIndex* incomingIndex_;
     NodeIndex* outgoingIndex_;
@@ -16,6 +22,10 @@ private:
     Buffer* incomingBuffer_;
     Buffer* outgoingBuffer_;
 
+    // Private function to assist insertion in graph.
+    // Takes either incomingIndex or outgoingIndex and their respective buffer
+    // and performs insertion of neighbor node in target
+    // checking for duplicates if checkDuplicates is true
     bool addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node, bool checkDuplicates);
 };
 #endif
