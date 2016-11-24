@@ -47,6 +47,7 @@ Hash<T>::Hash(uint32_t bucket_number){
     for(long i = 0; i < this->bucket_number_; i++){
         buckets_[i] = 0;
     }
+    this->initCursor();
 }
 
 template <class T>
@@ -135,4 +136,38 @@ uint32_t Hash<T>::hash_(hashkey_t key){
 template <class T>
 uint32_t Hash<T>::getSize(){
     return this->size_;
+}
+
+
+template <class T>
+void Hash<T>::initCursor(){
+    this->cursorBucket_ = 0;
+    this->cursorIndex_ = 0;
+}
+
+template <class T>
+T Hash<T>::moveCursorNext(ResultCode& rescode){
+    if(this->cursorBucket_ != 0){
+        if(this->cursorBucket_->getNext() != 0){
+            this->cursorBucket_ = this->cursorBucket_->getNext();
+            rescode = FOUND;
+            return this->cursorBucket_->getData();
+        }
+        this->cursorIndex_++;
+    }
+    while(this->cursorIndex_ < this->bucket_number_ && this->buckets_[this->cursorIndex_] == 0){
+        // Find next element
+        this->cursorIndex_++;
+    }
+
+    if(this->cursorIndex_ >= this->bucket_number_){
+        // Out of bounds
+        rescode = NOT_FOUND;
+        return 0;
+    }
+
+    // Move cursor
+    this->cursorBucket_ = this->buckets_[this->cursorIndex_];
+    rescode = FOUND;
+    return this->cursorBucket_->getData();  
 }

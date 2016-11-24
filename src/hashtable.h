@@ -39,11 +39,15 @@ public:
     void add(T data, hashkey_t key);
     ResultCode update(T data, hashkey_t key);
     void iterate(void (*action)(T));
+    void initCursor();
+    T moveCursorNext(ResultCode &rescode);
 private:
     uint32_t hash_(hashkey_t key);
     Bucket<T>** buckets_;
     uint32_t bucket_number_;
     uint32_t size_;
+    Bucket<T>* cursorBucket_;
+    int cursorIndex_;
 };
 
 #include "hashtable.cpp"
