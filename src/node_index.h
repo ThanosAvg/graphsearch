@@ -12,6 +12,7 @@ struct NodeIndexData{
     ptr nodeLoc_;
     uint32_t neighborCount_;
     ptr lastFree_;
+    uint32_t nodeId_;
 };
 
 class NodeIndex{
@@ -26,6 +27,14 @@ public:
     uint32_t getCurrentSize();
     uint32_t getMaxSize();
     void incrementNeighbors(uint32_t nodeId);
+
+    // Initializes a search cursor
+    void cursorInit();
+    
+    // Moves cursor and returns node
+    // returns the next element if found
+    // -1 otherwise
+    int32_t cursorGetNext();
 private:
     static const long hashBuckets_ = 1000000;
     Buffer* buffer_;

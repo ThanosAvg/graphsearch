@@ -163,7 +163,8 @@ T Hash<T>::moveCursorNext(ResultCode& rescode){
     if(this->cursorIndex_ >= this->bucket_number_){
         // Out of bounds
         rescode = NOT_FOUND;
-        return 0;
+        T blank = T();
+        return blank;
     }
 
     // Move cursor

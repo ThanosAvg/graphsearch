@@ -32,7 +32,7 @@ bool NodeIndex::insertNode(uint32_t nodeId){
     nodeData.nodeLoc_ = nodeLoc;
     nodeData.neighborCount_ = 0;
     nodeData.lastFree_ = nodeLoc;
-
+    nodeData.nodeId_ = nodeId;
     this->hash_->add(nodeData, nodeId); // Data , Key pair
     return true;
 }
@@ -92,4 +92,22 @@ void NodeIndex::setListTail(uint32_t nodeId, ptr tail){
 
     element.lastFree_ = tail;
     this->hash_->update(element, nodeId);
+}
+
+void NodeIndex::cursorInit(){
+    this->hash_->initCursor();
+}
+
+int32_t NodeIndex::cursorGetNext(){
+    ResultCode rescode;
+    NodeIndexData data;
+    int32_t elem;
+    data = this->hash_->moveCursorNext(rescode);
+    elem = data.nodeId_;
+    if(rescode == FOUND){
+        return elem;
+    }
+    else{
+        return -1;
+    }
 }
