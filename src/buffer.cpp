@@ -19,6 +19,7 @@ ptr Buffer::allocNewNode(){
 
     if(numberOfNodes_ >= bufferSize_){
         /* Double the size of the buffer if needed */
+        std::cout << "Reallocing" << std::endl;
         bufferSpace_ = (ListNode*)realloc(bufferSpace_,bufferSize_*sizeof(ListNode)*2);
         if(bufferSpace_ == NULL){
             std::cout << "BUFFER OVERFLOW" << std::endl;
@@ -26,9 +27,10 @@ ptr Buffer::allocNewNode(){
         }
         bufferSize_ *= 2;
     }
-    ListNode* newNode = new ListNode();
-    memcpy(&bufferSpace_[numberOfNodes_], newNode, sizeof(ListNode));
-    delete newNode;
+    //ListNode* newNode = new ListNode();
+    //memcpy(&bufferSpace_[numberOfNodes_], newNode, sizeof(ListNode));
+    //delete newNode;
+    memcpy(&bufferSpace_[numberOfNodes_], &this->templateListNode_, sizeof(ListNode));
     ptr nodePtr = numberOfNodes_;
     numberOfNodes_++;
     return nodePtr;

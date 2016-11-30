@@ -16,18 +16,118 @@ Graph::Graph(){
 
 bool Graph::add(uint32_t from, uint32_t to){
     bool suc1, suc2;
-    bool check1 = true, check2 = true;
     if(this->incomingIndex_->getNeighborCount(to) < this->outgoingIndex_->getNeighborCount(from)){
-        check1 = true;
-        check2 = false;
+        suc1 = this->addToPairWithDupCheck(this->incomingIndex_,
+                                           this->incomingBuffer_,
+                                           to,
+                                           from);
+        suc2 = this->addToPair(this->outgoingIndex_,
+                               this->outgoingBuffer_,
+                               from,
+                               to);
     }
     else{
-        check2 = true;
-        check1 = false;
+        suc1 = this->addToPair(this->incomingIndex_,
+                               this->incomingBuffer_,
+                               to,
+                               from);
+        suc2 = this->addToPairWithDupCheck(this->outgoingIndex_,
+                                           this->outgoingBuffer_,
+                                           from,
+                                           to);
     }
-    suc1 = this->addToPair(this->incomingIndex_, this->incomingBuffer_, to, from, check1);
-    suc2 = this->addToPair(this->outgoingIndex_, this->outgoingBuffer_, from, to, check2);
+    //suc1 = this->addToPair(this->incomingIndex_, this->incomingBuffer_, to, from);
+    //suc2 = this->addToPair(this->outgoingIndex_, this->outgoingBuffer_, from, to);
     return suc1 && suc2;
+}
+
+bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node){
+    ptr lNodePtr = index->getListTail(target);
+    if(lNodePtr == PTR_NULL){
+        // Node does not exist
+        // We have to create it
+        index->insertNode(target);
+        lNodePtr = index->getListTail(target);
+    }
+    // Get actual list node from lNodePtr
+    ListNode *listNode = buffer->getListNode(lNodePtr);
+    // Add if we have space, else create a new list node
+    if(listNode->getNeighborCount() < listNode->getNeighborMax()){
+        listNode->addNeighbor(node);
+    }
+    else{
+        ptr newAddr;
+        newAddr = buffer->allocNewNode();
+        listNode = buffer->getListNode(lNodePtr);
+                
+        //if(newAddr == PTR_NULL){
+        //    return false; // We failed to allocate
+        //}
+
+        ListNode *newNode = buffer->getListNode(newAddr);
+        
+        listNode->setNextListNode(newAddr);
+        listNode = buffer->getListNode(newAddr);
+        listNode->addNeighbor(node);
+        index->setListTail(target, newAddr);
+    }
+    index->incrementNeighbors(target);
+    return true;
+}
+
+
+bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node){
+    // Check if node exists
+    ptr lNodePtr;
+    lNodePtr = index->getListHead(target);
+
+    if(lNodePtr == PTR_NULL){
+        // Create node
+        index->insertNode(target);
+        lNodePtr = index->getListHead(target);
+    }
+    // Get actual list node
+    ListNode* listNode = buffer->getListNode(lNodePtr);
+
+    // Check if neighbor already exists
+    if(listNode->containsNeighbor(node)){
+        return true; // Its already there
+    }
+
+    // Increment neighbor count in index
+    index->incrementNeighbors(target);
+    //cout << target << "->" << index->getNeighborCount(target) << endl;
+
+    // Skip if full
+    while(listNode->getNeighborMax() == listNode->getNeighborCount()){
+
+        // Check if next list node exists
+        if(listNode->getNextListNode() == PTR_NULL){
+            // We create the next list node
+            ptr newAddr;
+            newAddr = buffer->allocNewNode();
+            listNode=buffer->getListNode(lNodePtr);
+
+            if(newAddr == PTR_NULL){
+                return false; // We failed to allocate
+            }
+
+            listNode->setNextListNode(newAddr);
+
+            // Update list tail
+            index->setListTail(target, newAddr);
+        }
+
+        lNodePtr=listNode->getNextListNode();
+        listNode = buffer->getListNode(lNodePtr);
+
+        // Check if neighbor already exists
+        if(listNode->containsNeighbor(node)){
+            return true; // Its already there
+        }
+    }
+    listNode->addNeighbor(node);
+    return true;
 }
 
 long Graph::query(uint32_t from, uint32_t to){
@@ -183,6 +283,7 @@ long Graph::query(uint32_t from, uint32_t to){
     return -1;
 }
 
+/*
 bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node, bool checkDuplicates){
     // Check if node exists
     ptr lNodePtr;
@@ -245,6 +346,7 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
     listNode->addNeighbor(node);
     return true;
 }
+*/
 
 Graph::~Graph(){
     delete incomingBuffer_;

@@ -1,18 +1,24 @@
+#include <iostream>
 #include <stdlib.h>
 #include "node_index.h"
 #include "buffer.h"
 
 NodeIndex::NodeIndex(Buffer* buffer){
     this->buffer_ = buffer;
-    this->hash_ = new Hash<NodeIndexData>(this->hashBuckets_);
+    this->currentSize_ = this->startSize_;
+    std::cout << "Started allocating array" << std::endl;
+    //this->array_ = (NodeIndexData*) calloc(this->currentSize_, sizeof(NodeIndexData));
+    this->array_ = (NodeIndexData*) malloc(this->currentSize_ * sizeof(NodeIndexData));
+    memset(this->array_, 0, this->currentSize_ * sizeof(NodeIndexData));
+    std::cout << "Array allocated" << std::endl;
 }
 
 NodeIndex::~NodeIndex(){
-    delete this->hash_;
+    free(this->array_);
 }
 
 uint32_t NodeIndex::getCurrentSize(){
-    return this->hash_->getSize();
+    return this->currentSize_;
 }
 
 uint32_t NodeIndex::getMaxSize(){
@@ -20,9 +26,9 @@ uint32_t NodeIndex::getMaxSize(){
 }
 
 bool NodeIndex::insertNode(uint32_t nodeId){
-    if(this->buffer_ == 0){
-        return false;
-    }
+    //if(this->buffer_ == 0){
+    //    return false;
+    //}
 
     // Create new node in buffer
     ptr nodeLoc;
@@ -32,64 +38,89 @@ bool NodeIndex::insertNode(uint32_t nodeId){
     nodeData.nodeLoc_ = nodeLoc;
     nodeData.neighborCount_ = 0;
     nodeData.lastFree_ = nodeLoc;
+    nodeData.flag = 1;
 
-    this->hash_->add(nodeData, nodeId); // Data , Key pair
+    //this->hash_->add(nodeData, nodeId); // Data , NodeId pair
+    if(nodeId >= this->currentSize_){
+        std::cout << "Scaling started..." << std::endl;
+        // Scale array
+        NodeIndexData *resized;
+        int ntimes = 2;
+        while(ntimes * this->currentSize_ < nodeId + 1){
+            ntimes *= 2;
+        }
+        resized = (NodeIndexData*) realloc(this->array_, this->currentSize_ * sizeof(NodeIndexData) * ntimes + 1);
+        if(resized == NULL){
+            // Realloc failed, free resources and fail
+            free(this->array_);
+            return false;
+        }
+        this->array_ = resized;
+        std::cout << "Scaling done" << std::endl;
+        this->currentSize_ = this->currentSize_ * ntimes + 1;
+    }
+
+    // Add element to array
+    this->array_[nodeId] = nodeData; 
     return true;
 }
 
 ptr NodeIndex::getListHead(uint32_t nodeId){
-    ResultCode rescode;
-    NodeIndexData element = this->hash_->get(nodeId, rescode);
-
-    if(rescode == NOT_FOUND){
+    if(nodeId >= this->currentSize_){
         return PTR_NULL;
     }
-
-    return element.nodeLoc_;
+    else if(this->array_[nodeId].flag == 0){
+        return PTR_NULL;
+    }
+    else{
+        return array_[nodeId].nodeLoc_;
+    }
 }
 
 ptr NodeIndex::getListTail(uint32_t nodeId){
-    ResultCode rescode;
-    NodeIndexData element = this->hash_->get(nodeId, rescode);
-
-    if(rescode == NOT_FOUND){
+    if(nodeId >= this->currentSize_){
         return PTR_NULL;
     }
-
-    return element.lastFree_;
+    else if(this->array_[nodeId].flag == 0){
+        return PTR_NULL;
+    }
+    else{
+        return array_[nodeId].lastFree_;
+    }
 }
 
-uint32_t NodeIndex::getNeighborCount(uint32_t nodeId){
-    ResultCode rescode;
-    NodeIndexData element = this->hash_->get(nodeId, rescode);
-
-    if(rescode == NOT_FOUND){
-        return 0;
+long NodeIndex::getNeighborCount(uint32_t nodeId){
+    if(nodeId >= this->currentSize_){
+        return -1;
     }
-
-    return element.neighborCount_;
+    else if(this->array_[nodeId].flag == 0){
+        return -1;
+    }
+    else{
+        return array_[nodeId].neighborCount_;
+    }
 }
 
 void NodeIndex::incrementNeighbors(uint32_t nodeId){
-    ResultCode rescode;
-    NodeIndexData element = this->hash_->get(nodeId, rescode);
-
-    if(rescode == NOT_FOUND){
-        return;
+    if(nodeId >= this->currentSize_){
+        return ;
     }
-
-    element.neighborCount_ ++;
-    this->hash_->update(element, nodeId);
+    else if(this->array_[nodeId].flag == 0){
+        return ;
+    }
+    else{
+        array_[nodeId].neighborCount_++;
+    }
 }
 
 void NodeIndex::setListTail(uint32_t nodeId, ptr tail){
-    ResultCode rescode;
-    NodeIndexData element = this->hash_->get(nodeId, rescode);
-
-    if(rescode == NOT_FOUND){
-        return;
+    if(nodeId >= this->currentSize_){
+        return ;
     }
-
-    element.lastFree_ = tail;
-    this->hash_->update(element, nodeId);
+    else if(this->array_[nodeId].flag == 0){
+        return ;
+    }
+    else{
+        array_[nodeId].lastFree_ = tail;
+    }
 }

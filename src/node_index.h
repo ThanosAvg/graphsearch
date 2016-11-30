@@ -5,13 +5,16 @@
 
 #include "types.h"
 #include "buffer.h"
+#include "table.h"
 #include "hashtable.h"
 
 //typedef ptr NodeIndexData;
 struct NodeIndexData{
     ptr nodeLoc_;
-    uint32_t neighborCount_;
+    //uint32_t neighborCount_;
+    long neighborCount_;
     ptr lastFree_;
+    int flag;
 };
 
 class NodeIndex{
@@ -22,14 +25,15 @@ public:
     ptr getListHead(uint32_t nodeId);
     ptr getListTail(uint32_t nodeId);
     void setListTail(uint32_t nodeId, ptr tail);
-    uint32_t getNeighborCount(uint32_t nodeId);
+    long getNeighborCount(uint32_t nodeId);
     uint32_t getCurrentSize();
     uint32_t getMaxSize();
     void incrementNeighbors(uint32_t nodeId);
 private:
-    static const long hashBuckets_ = 1000000;
+    static const long startSize_ = 7000000;
     Buffer* buffer_;
-    Hash<NodeIndexData>* hash_;
+    NodeIndexData* array_;
+    uint32_t currentSize_;
 };
 
 #endif

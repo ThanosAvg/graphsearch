@@ -5,7 +5,7 @@
 #include "list_node.h"
 #include "types.h"
 
-const uint32_t INITIAL_BUFFER_SIZE = 1024;
+const uint32_t INITIAL_BUFFER_SIZE = 1000000;
 
 class Buffer{
 public:
@@ -22,6 +22,7 @@ private:
     ListNode* bufferSpace_;
     ptr numberOfNodes_;
     ptr bufferSize_;
+    ListNode templateListNode_;
 };
 
 #endif

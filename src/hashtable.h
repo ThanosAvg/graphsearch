@@ -3,10 +3,9 @@
 
 #include <stdint.h>
 
-typedef uint32_t hashkey_t;
+#include "types.h"
 
-// To be used in return codes
-enum ResultCode{FOUND, NOT_FOUND};
+typedef uint32_t hashkey_t;
 
 // Bucket class contains the actual data the hash
 // is supposed to store and the next bucket node.

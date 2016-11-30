@@ -28,6 +28,7 @@ private:
     // Takes either incomingIndex or outgoingIndex and their respective buffer
     // and performs insertion of neighbor node in target
     // checking for duplicates if checkDuplicates is true
-    bool addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node, bool checkDuplicates);
+    bool addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node);
+    bool addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node);
 };
 #endif
