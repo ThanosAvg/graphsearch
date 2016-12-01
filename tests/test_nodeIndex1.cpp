@@ -4,6 +4,7 @@
 bool testInit();
 bool testInsert();
 bool testGetHead();
+bool testCursor();
 
 int main(){
     if(testInit()){
@@ -24,12 +25,18 @@ int main(){
     else{
         std::cout << "Getting list head test failed" << std::endl;
     }
+    if(testCursor()){
+        std::cout << "Cursor test passed" << std::endl;       
+    }
+    else{
+        std::cout << "Cursor test failed" << std::endl;
+    }
 }
 
 bool testInit(){
     Buffer buffer;
     NodeIndex index(&buffer);
-    if(index.getCurrentSize() == 0){
+    if(index.getCurrentSize() != 0){
         return true;
     }
     else{
@@ -45,16 +52,9 @@ bool testInsert(){
             return false;
         }
     }
-    bool success;
-    if(index->getCurrentSize() == 500){
-        success = true;
-    }
-    else{
-        success = false;
-    }
     delete index;
     delete buffer;
-    return success;
+    return true;
 }
 
 bool testGetHead(){
@@ -73,4 +73,33 @@ bool testGetHead(){
     delete index;
     delete buffer;
     return success;
+}
+
+bool testCursor(){
+    Buffer* buffer = new Buffer();
+    NodeIndex* index = new NodeIndex(buffer);
+    for(int i = 0; i < 1500000; i+=2){
+        index->insertNode(i);
+    }
+    bool error;
+    int next;
+    for(int i = 0; i < 1500000; i+=2){
+        next = index->getNextId(error);
+        if(error){
+            std::cout << "An error occured while moving cursor" << std::endl;
+            return false;
+        }
+        else if(next != i){
+            std::cout << "Expected: " << i << " Received: " << next << std::endl;
+            return false;
+        }
+    }
+
+    for(int i = 6000; i < 6500; i++){
+        next = index->getNextId(error);
+        if(!error){
+            return false;
+        }
+    }
+    return true;
 }

@@ -9,6 +9,8 @@ NodeIndex::NodeIndex(Buffer* buffer){
     std::cout << "Started allocating array" << std::endl;
     //this->array_ = (NodeIndexData*) calloc(this->currentSize_, sizeof(NodeIndexData));
     this->array_ = (NodeIndexData*) malloc(this->currentSize_ * sizeof(NodeIndexData));
+    this->cursor_ = -1;
+    this->maxId_ = -1;
     memset(this->array_, 0, this->currentSize_ * sizeof(NodeIndexData));
     std::cout << "Array allocated" << std::endl;
 }
@@ -61,7 +63,10 @@ bool NodeIndex::insertNode(uint32_t nodeId){
     }
 
     // Add element to array
-    this->array_[nodeId] = nodeData; 
+    this->array_[nodeId] = nodeData;
+    if((int32_t) nodeId > this->maxId_){
+        this->maxId_ = nodeId;
+    }
     return true;
 }
 
@@ -123,4 +128,30 @@ void NodeIndex::setListTail(uint32_t nodeId, ptr tail){
     else{
         array_[nodeId].lastFree_ = tail;
     }
+}
+
+void NodeIndex::resetCursor(){
+    this->cursor_ = -1;
+}
+
+uint32_t NodeIndex::getNextId(bool &error){
+    this->cursor_++;
+    if(this->cursor_ >= (int32_t) this->getCurrentSize()){
+        error = true;
+        return 0;
+    }
+    if(this->cursor_ > this->maxId_){
+        error = true;
+        return 0;
+    }
+    for(uint32_t i = this->cursor_; i < this->getCurrentSize(); i++){
+        if(this->array_[i].flag != 0){
+            error = false;
+            this->cursor_ = i; // move cursor to last valid
+            return i; // the index is also the node's id
+        }
+    }
+    // We got out of bounds
+    error = true;
+    return 0;
 }

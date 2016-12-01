@@ -29,11 +29,15 @@ public:
     uint32_t getCurrentSize();
     uint32_t getMaxSize();
     void incrementNeighbors(uint32_t nodeId);
+    void resetCursor();
+    uint32_t getNextId(bool &error);
 private:
     static const long startSize_ = 7000000;
-    Buffer* buffer_;
-    NodeIndexData* array_;
-    uint32_t currentSize_;
+    Buffer* buffer_;       // Pointer to buffer associated with this index
+    NodeIndexData* array_; // Array holding the node data
+    uint32_t currentSize_; // Current array size (doubles if needed)
+    int32_t cursor_;       // Last getNextId position
+    int32_t maxId_;        // Maximum node id 
 };
 
 #endif
