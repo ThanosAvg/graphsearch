@@ -21,20 +21,24 @@ bool Graph::add(uint32_t from, uint32_t to){
                                            this->incomingBuffer_,
                                            to,
                                            from);
-        suc2 = this->addToPair(this->outgoingIndex_,
-                               this->outgoingBuffer_,
-                               from,
-                               to);
+        if(suc1){
+            suc2 = this->addToPair(this->outgoingIndex_,
+                                this->outgoingBuffer_,
+                                from,
+                                to);
+        }
     }
     else{
-        suc1 = this->addToPair(this->incomingIndex_,
-                               this->incomingBuffer_,
-                               to,
-                               from);
-        suc2 = this->addToPairWithDupCheck(this->outgoingIndex_,
+        suc1 = this->addToPairWithDupCheck(this->outgoingIndex_,
                                            this->outgoingBuffer_,
                                            from,
                                            to);
+        if(suc1){
+            suc2 = this->addToPair(this->incomingIndex_,
+                                   this->incomingBuffer_,
+                                   to,
+                                   from);
+        }
     }
     //suc1 = this->addToPair(this->incomingIndex_, this->incomingBuffer_, to, from);
     //suc2 = this->addToPair(this->outgoingIndex_, this->outgoingBuffer_, from, to);
@@ -59,13 +63,13 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
         ptr newAddr;
         newAddr = buffer->allocNewNode();
         listNode = buffer->getListNode(lNodePtr);
-                
+
         //if(newAddr == PTR_NULL){
         //    return false; // We failed to allocate
         //}
 
         ListNode *newNode = buffer->getListNode(newAddr);
-        
+
         listNode->setNextListNode(newAddr);
         listNode = buffer->getListNode(newAddr);
         listNode->addNeighbor(node);
@@ -123,7 +127,7 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
 
         // Check if neighbor already exists
         if(listNode->containsNeighbor(node)){
-            return true; // Its already there
+            return false; // Its already there
         }
     }
     listNode->addNeighbor(node);
