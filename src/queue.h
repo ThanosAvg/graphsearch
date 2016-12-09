@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-struct QueueNode{
-    uint32_t node;
-    struct QueueNode* next;
-};
-
 class Queue{
 public:
     Queue();
@@ -16,8 +11,12 @@ public:
     bool isEmpty();
     ~Queue();
 private:
-    QueueNode* start_;
-    QueueNode* end_;
+    static const uint32_t closedSetSize_ = 1024;
+
+    uint32_t* array_;
+    uint32_t currentSize_;
+    uint32_t start_;
+    uint32_t end_;
 };
 
 #endif
