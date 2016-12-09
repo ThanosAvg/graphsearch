@@ -8,7 +8,7 @@
 
 using namespace std;
 
-Graph::Graph(){
+Graph::Graph() : startVisited(closedSetSize_), endVisited(closedSetSize_){
     this->incomingBuffer_ = new Buffer();
     this->outgoingBuffer_ = new Buffer();
     this->incomingIndex_ = new NodeIndex(this->incomingBuffer_);
@@ -145,8 +145,10 @@ long Graph::query(uint32_t from, uint32_t to){
 
     Queue startQueue, endQueue;
 
-    Hash<uint32_t> startVisited((this)->closedSetSize_);
-    Hash<uint32_t> endVisited((this)->closedSetSize_);
+    //Hash<uint32_t> startVisited((this)->closedSetSize_);
+    //Hash<uint32_t> endVisited((this)->closedSetSize_);
+    startVisited.reset();
+    endVisited.reset();
     ResultCode resCodeStart, resCodeEnd;
 
     startQueue.enqueue(UINT_MAX-1);

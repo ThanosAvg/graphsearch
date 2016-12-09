@@ -3,11 +3,12 @@
 
 int main(){
     Hash<int>* h = new Hash<int>(100000);
-    bool test1;
+    bool test1 = true;
     for(int i = 0; i < 1000000; i++){
         std::cout << "Adding: " << i << std::endl;
         h->add(i, i);
     }
+
     for(int i = 0; i < 1000000; i++){
         ResultCode rescode;
         int j = h->get(i, rescode);
@@ -29,7 +30,19 @@ int main(){
             break;
         }
     }
-    test1 = true;
+
+    h->reset();
+    ResultCode rescode;
+    int j = h->get(0, rescode);
+    if(rescode == FOUND){
+        test1 = false;
+    }
+    j = h->get(1, rescode);
+    if(rescode == FOUND){
+        test1 = false;
+    }
+    std::cout << "Reseted..." << std::endl;
+
     if(test1){
         std::cout << "Insert test passed" << std::endl;
     }

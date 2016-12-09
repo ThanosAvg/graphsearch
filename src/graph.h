@@ -15,14 +15,17 @@ public:
     // Takes 2 node ids and calculates the cost of the path between them, or -1 if either no
     // path exists or invalid input is given
     long query(uint32_t from, uint32_t to);
-private:
-    static const uint32_t closedSetSize_ = 131;
+protected:
+    static const uint32_t closedSetSize_ = 101; //131;
 
     NodeIndex* incomingIndex_;
     NodeIndex* outgoingIndex_;
 
     Buffer* incomingBuffer_;
     Buffer* outgoingBuffer_;
+
+    Hash<uint32_t> startVisited;
+    Hash<uint32_t> endVisited;
 
     // Private function to assist insertion in graph.
     // Takes either incomingIndex or outgoingIndex and their respective buffer
