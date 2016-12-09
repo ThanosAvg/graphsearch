@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <limits.h>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -144,14 +145,11 @@ long Graph::query(uint32_t from, uint32_t to){
 
     Queue startQueue, endQueue;
 
-    Hash<uint32_t>* startVisited = new Hash<uint32_t>((this)->closedSetSize_);
-    Hash<uint32_t>* endVisited = new Hash<uint32_t>((this)->closedSetSize_);
+    Hash<uint32_t> startVisited((this)->closedSetSize_);
+    Hash<uint32_t> endVisited((this)->closedSetSize_);
     ResultCode resCodeStart, resCodeEnd;
 
-    startQueue.enqueue(from);
     startQueue.enqueue(UINT_MAX-1);
-
-    endQueue.enqueue(to);
     endQueue.enqueue(UINT_MAX-1);
 
     uint32_t startCurrentNode,endCurrentNode;
@@ -161,6 +159,8 @@ long Graph::query(uint32_t from, uint32_t to){
     ptr startCurrentNodePtr,endCurrentNodePtr;
     uint32_t* startNodeNeighbors;
     uint32_t* endNodeNeighbors;
+    uint32_t startNodeNeighborsNumber;
+    uint32_t endNodeNeighborsNumber;
     uint32_t startCurrentNeighbors=0;
     uint32_t endCurrentNeighbors=0;
 
@@ -169,8 +169,8 @@ long Graph::query(uint32_t from, uint32_t to){
 
     startCurrentLength = 0;
     endCurrentLength = 0;
-    startCurrentNode = startQueue.dequeue();
-    endCurrentNode = endQueue.dequeue();
+    startCurrentNode = from;
+    endCurrentNode = to;
 
     while(!startQueue.isEmpty() && !endQueue.isEmpty()){
 
@@ -179,10 +179,10 @@ long Graph::query(uint32_t from, uint32_t to){
 
             while(startCurrentNode != UINT_MAX-1){
 
-                //If current node is not visited
-                startVisited->get(startCurrentNode, resCodeStart);
+                //If current Node is already visited skip
+                startVisited.get(startCurrentNode, resCodeStart);
                 if(resCodeStart == NOT_FOUND){
-                    startVisited->add(startCurrentNode, startCurrentNode);
+                    startVisited.add(startCurrentNode, startCurrentNode);
                     startCurrentNodePtr=outgoingIndex->getListHead(startCurrentNode);
                     if(startCurrentNodePtr == PTR_NULL){
                         continue;
@@ -193,20 +193,15 @@ long Graph::query(uint32_t from, uint32_t to){
                     while(true){
                         startNodeNeighbors=startCurrentListNode->getNeighborsPtr();
                         //For every neighbors inside the current list node
-                        for(uint32_t i = 0; i < startCurrentListNode->getNeighborCount(); i++){
+                        startNodeNeighborsNumber=startCurrentListNode->getNeighborCount();
+                        for(uint32_t i = 0; i < startNodeNeighborsNumber; i++){
                             //If current neighbor is the target one:return
-                            endVisited->get(startNodeNeighbors[i], resCodeEnd);
+                            endVisited.get(startNodeNeighbors[i], resCodeEnd);
                             if(resCodeEnd == FOUND){
-                                delete startVisited;
-                                delete endVisited;
                                 return startCurrentLength+endCurrentLength;
                             }
-                            //If current neighbor is already in closed set do not push him
-                            startVisited->get(startNodeNeighbors[i], resCodeStart);
-                            if(resCodeStart == NOT_FOUND){
-                                startQueue.enqueue(startNodeNeighbors[i]);
-                                startCurrentNeighbors++;
-                            }
+                            startQueue.enqueue(startNodeNeighbors[i]);
+                            startCurrentNeighbors++;
                         }
                         //Get the next list node pointer from the current one
                         startCurrentNodePtr=startCurrentListNode->getNextListNode();
@@ -229,15 +224,15 @@ long Graph::query(uint32_t from, uint32_t to){
 
         //End side implementation
 
-    	if(endCurrentNeighbors < startCurrentNeighbors){
+    	else{
             endCurrentNeighbors = 0;
 
             while(endCurrentNode != UINT_MAX-1){
 
-                //If current node is not visited
-                endVisited->get(endCurrentNode, resCodeEnd);
+                //If current Node is already visited skip
+                endVisited.get(endCurrentNode, resCodeEnd);
                 if(resCodeEnd == NOT_FOUND){
-                    endVisited->add(endCurrentNode, endCurrentNode);
+                    endVisited.add(endCurrentNode, endCurrentNode);
                     endCurrentNodePtr=incomingIndex->getListHead(endCurrentNode);
                     if(endCurrentNodePtr == PTR_NULL){
                         continue;
@@ -248,20 +243,15 @@ long Graph::query(uint32_t from, uint32_t to){
                     while(true){
                         endNodeNeighbors = endCurrentListNode->getNeighborsPtr();
                         //For every neighbors inside the current list node
-                        for(uint32_t i = 0; i < endCurrentListNode->getNeighborCount(); i++){
+                        endNodeNeighborsNumber=endCurrentListNode->getNeighborCount();
+                        for(uint32_t i = 0; i < endNodeNeighborsNumber; i++){
                             //If current neighbor is the target one:return
-                            startVisited->get(endNodeNeighbors[i], resCodeStart);
+                            startVisited.get(endNodeNeighbors[i], resCodeStart);
                             if(resCodeStart == FOUND){
-                                delete startVisited;
-                                delete endVisited;
                                 return startCurrentLength + endCurrentLength;
                             }
-                            //If current neighbor is already in closed set do not push him
-                            endVisited->get(endNodeNeighbors[i], resCodeEnd);
-                            if(resCodeEnd == NOT_FOUND){
-                                endQueue.enqueue(endNodeNeighbors[i]);
-                                endCurrentNeighbors++;
-                            }
+                            endQueue.enqueue(endNodeNeighbors[i]);
+                            endCurrentNeighbors++;
                         }
                         //Get the next list node pointer from the current one
                         endCurrentNodePtr = endCurrentListNode->getNextListNode();
@@ -282,8 +272,6 @@ long Graph::query(uint32_t from, uint32_t to){
             endCurrentNode = endQueue.dequeue();
         }
     }
-    delete startVisited;
-    delete endVisited;
     return -1;
 }
 
