@@ -2,6 +2,9 @@
 #define GRAPH_H
 
 #include "node_index.h"
+#include "stack.h"
+#include "scc.h"
+#include "grail.h"
 
 class Graph{
 public:
@@ -16,7 +19,7 @@ public:
     // path exists or invalid input is given
     long query(uint32_t from, uint32_t to);
 protected:
-    static const uint32_t closedSetSize_ = 101; //131;
+    static const uint32_t closedSetSize_ = 37; //131;
 
     NodeIndex* incomingIndex_;
     NodeIndex* outgoingIndex_;
@@ -33,5 +36,29 @@ protected:
     // checking for duplicates if checkDuplicates is true
     bool addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node);
     bool addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node);
+};
+
+class StaticGraph: public Graph{
+public:
+    StaticGraph();
+    ~StaticGraph();
+
+    //SCC related functions
+    uint32_t strongConnect(uint32_t, uint32_t &, Stack*, bool*);
+    bool estimateStronglyConnectedComponents();
+    void estimateComponentsNeighbors(char select);
+    long estimateShortestPathStronglyConnectedComponents(uint32_t, uint32_t);
+
+    //GrailRelatedFunctions
+    uint32_t grailConnect(Component*, GrailIndex*, int, uint32_t &, bool*, char);
+    void buildGrailIndex();
+    GrailAnswer isReachableGrailIndex(uint32_t, uint32_t);
+
+    long staticQuery(uint32_t,uint32_t);
+
+private:
+    SCC* scc_;
+    GrailIndex* grailIndexOutgoing_;
+    GrailIndex* grailIndexIncoming_;
 };
 #endif
