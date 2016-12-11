@@ -31,8 +31,19 @@ int main(){
         }
     }
 
-    h->reset();
     ResultCode rescode;
+    h->add(3000000, 3000000);
+    int x = h->get(3000000, rescode);
+    if(x != 3000000){
+        test1 = false;
+    }
+    h->update(4000000, 3000000);
+    x = h->get(3000000, rescode);
+    if(x != 4000000){
+        test1 = false;
+    }
+    
+    h->reset();
     int j = h->get(0, rescode);
     if(rescode == FOUND){
         test1 = false;
