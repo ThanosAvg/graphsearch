@@ -14,6 +14,7 @@ Hash<T>::Hash(uint32_t bucketNumber){
     this->bInfo = (BucketInfo<T>*) malloc(this->bucketNumber_ * sizeof(BucketInfo<T>));
     memset(this->bInfo, 0, this->bucketNumber_ * sizeof(BucketInfo<T>));
     //this->bInfo = (BucketInfo<T>*) calloc(this->bucketNumber_, sizeof(BucketInfo<T>));
+    this->size_ = 0;
 }
 
 template <class T>
@@ -104,24 +105,31 @@ void Hash<T>::add(T data, hashkey_t key){
         this->bInfo[bucketIndex].lastStore = currentStore;
         this->bInfo[bucketIndex].lastPos = 0;
     }
+
+    this->size_++;
 }
 
-/*
 template <class T>
 ResultCode Hash<T>::update(T data, hashkey_t key){
-    long bucket_index;
-    bucket_index = this->hash_(key);
-    Bucket<T>* current = this->buckets_[bucket_index];
-    while(current != 0){
-        if(current->getKey() == key){
-            current->setData(data);
-            return FOUND;
+    long bucketIndex;
+    bucketIndex = this->hash_(key);
+    uint32_t current = 0;
+    BucketStore<T> *currentStore = this->store;
+    while(currentStore != 0){
+        for(uint32_t i = 0; i < this->maxCollisions_; i++){
+            if(currentStore->bucketArray[maxCollisions_ * bucketIndex + i].flag == 0){
+                break;
+            }
+            if(currentStore->bucketArray[maxCollisions_ * bucketIndex + i].key == key){
+                currentStore->bucketArray[maxCollisions_ * bucketIndex + i].data = data; // Exit point; FOUND
+                return FOUND;
+            }
         }
-        current = current->getNext();
+        currentStore = currentStore->next;
     }
     return NOT_FOUND;
 }
-*/
+
 template <class T>
 uint32_t Hash<T>::hash_(hashkey_t key){
     // Based on http://stackoverflow.com/a/12996028
