@@ -17,9 +17,9 @@ public:
     void setNextListNode(ptr next);
     bool containsNeighbor(uint32_t id);
 private:
-    static const uint32_t neighborMax_ = 50; // number of neighbors per list node
+    static const uint32_t neighborMax_ = 200; // number of neighbors per list node
     uint32_t neighbors_[neighborMax_];       // the ids of the neighbor nodes
-    uint32_t edgeProperty_[neighborMax_];   // property for each edge
+    //uint32_t edgeProperty_[neighborMax_];   // property for each edge
     ptr nextListNode_;           // offset of next list node
     uint32_t neighborCount_;     // number of edges in list node
 };
