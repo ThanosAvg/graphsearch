@@ -3,6 +3,7 @@
 
 #include "node_index.h"
 #include "stack.h"
+#include "queue.h"
 #include "scc.h"
 #include "grail.h"
 
@@ -18,6 +19,7 @@ public:
     // Takes 2 node ids and calculates the cost of the path between them, or -1 if either no
     // path exists or invalid input is given
     long query(uint32_t from, uint32_t to);
+    bool expandLevel(NodeIndex* index,Buffer* buffer,Queue* queue,Hash<uint32_t>* myVisited,Hash<uint32_t>* otherVisited,uint32_t& currentNeighbors);
 protected:
     static const uint32_t closedSetSize_ = 37; //131;
 

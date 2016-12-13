@@ -6,8 +6,8 @@ Queue::Queue(){
     /*  Queue Constructor */
     start_=0;
     end_=0;
-    currentSize_=closedSetSize_;
-    array_=(uint32_t*)malloc(closedSetSize_*sizeof(uint32_t));
+    currentSize_=initialSize_;
+    array_=(uint32_t*)malloc(initialSize_*sizeof(uint32_t));
 }
 
 void Queue::enqueue(uint32_t node){

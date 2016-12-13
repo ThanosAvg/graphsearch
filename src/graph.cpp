@@ -135,6 +135,119 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
     return true;
 }
 
+bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uint32_t>* myVisited,
+     Hash<uint32_t>* otherVisited, uint32_t& currentNeighbors){
+    /* Expands the current nodes in the queue(one level).
+    Returns true if the desired path is found,false if not. */
+
+    ResultCode resCode;
+    ptr currentNodePtr;
+    ListNode* currentListNode;
+    uint32_t* nodeNeighbors;
+    uint32_t nodeNeighborsNumber;
+
+    uint32_t currentNode = queue->dequeue();
+
+    while(currentNode != LEVEL_END){
+
+        //If current Node is already visited skip
+        myVisited->get(currentNode, resCode);
+        if(resCode == NOT_FOUND){
+            myVisited->add(currentNode, currentNode);
+            currentNodePtr = index->getListHead(currentNode);
+            if(currentNodePtr == PTR_NULL){
+                continue;
+            }
+            currentListNode = buffer->getListNode(currentNodePtr);
+
+            //Push node's neighbors that are not in closed set
+            while(true){
+                nodeNeighbors = currentListNode->getNeighborsPtr();
+                //For every neighbors inside the current list node
+                nodeNeighborsNumber = currentListNode->getNeighborCount();
+                for(uint32_t i = 0; i < nodeNeighborsNumber; i++){
+                    //If current neighbor is the target one:return
+                    otherVisited->get(nodeNeighbors[i], resCode);
+                    if(resCode == FOUND){
+                        return true;
+                    }
+                    queue->enqueue(nodeNeighbors[i]);
+                    currentNeighbors++;
+                }
+                //Get the next list node pointer from the current one
+                currentNodePtr = currentListNode->getNextListNode();
+                if(currentNodePtr == PTR_NULL)
+                    break;
+                else
+                    currentListNode = buffer->getListNode(currentNodePtr);
+            }
+        }
+        currentNode = queue->dequeue();
+    }
+    return false;
+}
+
+long Graph::query(uint32_t from, uint32_t to){
+    /* Finds and returns the path distance from the source node to the target node.
+    Returns -1 if a paths does not exist. */
+
+    // Validate nodes
+    if(this->outgoingIndex_->getListHead(from) == PTR_NULL ||
+       this->incomingIndex_->getListHead(to) == PTR_NULL){
+        return -1;
+    }
+
+    //Create two queues for each side for bi-bfs
+    Queue startQueue, endQueue;
+    //Reset current visited data structure
+    startVisited.reset();
+    endVisited.reset();
+
+    //Push into the queues,the initial nodes for each side(level 0)
+    startQueue.enqueue(from);
+    endQueue.enqueue(to);
+    startQueue.enqueue(LEVEL_END);
+    endQueue.enqueue(LEVEL_END);
+
+    //Current length measures the depth of search(levels) in each side
+    long startCurrentLength,endCurrentLength;
+    uint32_t startCurrentNeighbors=0;
+    uint32_t endCurrentNeighbors=0;
+    startCurrentLength = 0;
+    endCurrentLength = 0;
+
+    while(true){
+        // Run bidirectional bfs for source and target node
+
+        //Choose only the side with less neighbors in its queue
+        if(startCurrentNeighbors <= endCurrentNeighbors){
+            startCurrentNeighbors = 0;
+            //Expand the nodes currently in queue(one level),and add the next level nodes
+            if(expandLevel(this->outgoingIndex_,this->outgoingBuffer_,&startQueue,
+                &startVisited,&endVisited,startCurrentNeighbors)==true)
+                return startCurrentLength+endCurrentLength;
+            startCurrentLength++;
+            if(startQueue.isEmpty())
+                return -1;
+            startQueue.enqueue(LEVEL_END);
+        }
+        else{
+            endCurrentNeighbors = 0;
+            if(expandLevel(this->incomingIndex_,this->incomingBuffer_,&endQueue,
+                &endVisited,&startVisited,endCurrentNeighbors)==true)
+                return startCurrentLength+endCurrentLength;
+            endCurrentLength++;
+            if(endQueue.isEmpty())
+                return -1;
+            endQueue.enqueue(LEVEL_END);
+        }
+
+    }
+
+    return -1;
+}
+
+/*
 long Graph::query(uint32_t from, uint32_t to){
 
     // Validate nodes
@@ -174,7 +287,7 @@ long Graph::query(uint32_t from, uint32_t to){
     startCurrentNode = from;
     endCurrentNode = to;
 
-    while(!startQueue.isEmpty() && !endQueue.isEmpty()){
+    while(true){
 
     	if(startCurrentNeighbors <= endCurrentNeighbors){
             startCurrentNeighbors = 0;
@@ -219,7 +332,7 @@ long Graph::query(uint32_t from, uint32_t to){
             //Update for next level
             startCurrentLength++;
             if(startQueue.isEmpty())
-                break;
+                return -1;
             startQueue.enqueue(UINT_MAX-1);
             startCurrentNode=startQueue.dequeue();
     	}
@@ -269,7 +382,7 @@ long Graph::query(uint32_t from, uint32_t to){
             //Update for next level
             endCurrentLength++;
             if(endQueue.isEmpty())
-                break;
+                return -1;
             endQueue.enqueue(UINT_MAX-1);
             endCurrentNode = endQueue.dequeue();
         }
@@ -277,7 +390,6 @@ long Graph::query(uint32_t from, uint32_t to){
     return -1;
 }
 
-/*
 bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node, bool checkDuplicates){
     // Check if node exists
     ptr lNodePtr;

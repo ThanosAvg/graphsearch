@@ -11,7 +11,7 @@ public:
     bool isEmpty();
     ~Queue();
 private:
-    static const uint32_t closedSetSize_ = 1024;
+    static const uint32_t initialSize_ = 64;
 
     uint32_t* array_;
     uint32_t currentSize_;
