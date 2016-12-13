@@ -21,7 +21,7 @@ public:
     long query(uint32_t from, uint32_t to);
     bool expandLevel(NodeIndex* index,Buffer* buffer,Queue* queue,Hash<uint32_t>* myVisited,Hash<uint32_t>* otherVisited,uint32_t& currentNeighbors);
 protected:
-    static const uint32_t closedSetSize_ = 37; //131;
+    static const uint32_t closedSetSize_ = 997; //131;
 
     NodeIndex* incomingIndex_;
     NodeIndex* outgoingIndex_;
@@ -46,15 +46,21 @@ public:
     ~StaticGraph();
 
     //SCC related functions
-    uint32_t strongConnect(uint32_t, uint32_t &, Stack*, bool*);
+    uint32_t strongConnect(uint32_t node,uint32_t &index,Stack* stack,bool* onStack);
     bool estimateStronglyConnectedComponents();
     void estimateComponentsNeighbors(char select);
-    long estimateShortestPathStronglyConnectedComponents(uint32_t, uint32_t);
+    bool expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uint32_t>* myVisited,
+         Hash<uint32_t>* otherVisited, uint32_t& currentNeighbors, uint32_t componentId);
+    bool expandLevelPrunned(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uint32_t>* myVisited,
+         Hash<uint32_t>* otherVisited, uint32_t& currentNeighbors,GrailIndex* grail,uint32_t target_node);
+    long estimateShortestPathStronglyConnectedComponents(uint32_t source_node, uint32_t target_node);
+    long estimateShortestPathPrunned(uint32_t source_node, uint32_t target_node);
 
     //GrailRelatedFunctions
-    uint32_t grailConnect(Component*, GrailIndex*, int, uint32_t &, bool*, char);
+    uint32_t grailConnect(Component* currentComponent, GrailIndex* grail, int label, uint32_t &index,
+        bool* visited, char select);
     void buildGrailIndex();
-    GrailAnswer isReachableGrailIndex(uint32_t, uint32_t);
+    GrailAnswer isReachableGrailIndex(uint32_t source_node, uint32_t target_node, GrailIndex* grail);
 
     long staticQuery(uint32_t,uint32_t);
 

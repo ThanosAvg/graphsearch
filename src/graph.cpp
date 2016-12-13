@@ -191,6 +191,9 @@ long Graph::query(uint32_t from, uint32_t to){
     /* Finds and returns the path distance from the source node to the target node.
     Returns -1 if a paths does not exist. */
 
+    if(from==to)
+        return 0;
+
     // Validate nodes
     if(this->outgoingIndex_->getListHead(from) == PTR_NULL ||
        this->incomingIndex_->getListHead(to) == PTR_NULL){
