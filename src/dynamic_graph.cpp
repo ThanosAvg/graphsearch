@@ -5,10 +5,11 @@
 /*----------CC CODE---------*/
 /****************************/
 
-CC::CC(){ //: ccindex_(bucketNIndex_){
+CC::CC(){
     lastComponent = 0;
     updateIndexSize_ = 0;
-    ccindex_ = (uint32_t*) malloc(ccLimit_ * sizeof(uint32_t));
+    ccindex_ = (int32_t*) malloc(ccLimit_ * sizeof(int32_t));
+    memset(ccindex_, -1, ccLimit_ * sizeof(int32_t));
     ccSize_ = 0;
     ccMax_ = ccLimit_;
 }
@@ -17,113 +18,121 @@ CC::~CC(){
     free(ccindex_);
 }
 
-void CC::addNodeToComponent(uint32_t nodeId, uint32_t ccId){
-    //this->ccindex_.add(ccId, nodeId);
+void CC::addNodeToComponent(uint32_t nodeId, int32_t ccId){
+    if(nodeId > ccMax_){
+        int32_t *resized;
+        uint32_t newSize = 2 * ccMax_;
+        if(nodeId > newSize){
+            newSize = nodeId;
+        }
+        resized = (int32_t *) realloc(ccindex_, sizeof(int32_t) * newSize); // Double size
+        if(resized == NULL){
+            std::cout << "Error allocating memory";
+            return;
+        }
+        memset(resized + ccMax_, -1, (newSize - ccMax_) * sizeof(int32_t));
+        ccMax_ = newSize;
+        ccindex_ = resized;
+        
+    }
     ccindex_[nodeId] = ccId;
     ccSize_++;
 }
 
-void CC::postAddNodeToComponent(uint32_t nodeId, uint32_t ccId){
-//    std::cout << "Adding node to component" << std::endl;
-    //this->ccindex_.add(ccId, nodeId);
-    ccindex_[nodeId] = ccId;
-    ccSize_++;
-    /*
-    if(ccId > this->updateIndexSize_){
-        std::cout << "Realoc update" << std::endl;
-        uint32_t *resized;
-        uint32_t newSize = 2*this->updateIndexSize_;
-        if(ccId > newSize){
-            newSize = ccId;
+void CC::postAddNodeToComponent(uint32_t nodeId, int32_t ccId){
+    addNodeToComponent(nodeId, ccId);
+    
+    if(ccId > (int32_t) this->updateIndexSize_){
+        std::cout << "Realloc update" << std::endl;
+        int32_t *resized;
+        uint32_t newSize = 2 * this->updateIndexSize_;
+        if(ccId > (int32_t) newSize){
+            newSize = ccId; // Double or use ccid; whichever bigger
         }
-        resized = (uint32_t*) realloc(this->updateIndex_, newSize * sizeof(uint32_t));
+        resized = (int32_t*) realloc(this->updateIndex_, newSize * sizeof(int32_t));
         if(resized == NULL){
             std::cout << "Error allocating!" << std::endl;
             return;
         }
-        memset(resized + this->updateIndexSize_, 0, (newSize - updateIndexSize_) * sizeof(uint32_t));
         this->updateIndexSize_ = newSize;
         this->updateIndex_ = resized;
     }
-    */
 }
 
-void CC::joinComponents(uint32_t comp1, uint32_t comp2){
-//    std::cout << "Joining" << std::endl;
-    if(updateIndex_[comp1].flag == 0){
-        updateIndex_[comp1].connected = (uint32_t*) malloc(this->updateLimit_ * sizeof(ConnectData));
-        updateIndex_[comp1].flag = 1;
-        updateIndex_[comp1].size = 0;
-        updateIndex_[comp1].max = this->updateLimit_;
+void CC::joinComponents(int32_t comp1, int32_t comp2){
+    int32_t commonCC = updateIndex_[comp1];
+    if(commonCC == -1){
+        updateIndex_[comp1] = comp1;
+        commonCC = comp1;
     }
-    if(updateIndex_[comp2].flag == 0){
-        updateIndex_[comp2].connected = (uint32_t*) malloc(this->updateLimit_ * sizeof(ConnectData));
-        updateIndex_[comp2].flag = 1;
-        updateIndex_[comp2].size = 0;
-        updateIndex_[comp2].max = this->updateLimit_;
-    }
+    int32_t toBeMerged = updateIndex_[comp2];
 
-    updateIndex_[comp1].connected[updateIndex_[comp1].size] = comp2;
-    updateIndex_[comp1].size++;
-
-    updateIndex_[comp2].connected[updateIndex_[comp2].size] = comp1;
-    updateIndex_[comp2].size++;
-}
-
-int32_t CC::findNodeConnectedComponentID(uint32_t nodeId){
-//    std::cout << "Finding NCCID" << std::endl;
-    /*ResultCode rescode;
-    int32_t ccid;
-    ccid = ccindex_.get(nodeId, rescode);
-    if(rescode == NOT_FOUND){
-        return -1;
-    }
-    return ccid;*/
-    return ccindex_[nodeId];
-}
-
-bool CC::areConnected(uint32_t comp1, uint32_t comp2){
-//    std::cout << "Searching" << std::endl;
-    Queue fringe;
-    ResultCode rescode;
-    Hash<uint32_t> visited(101);
-    fringe.enqueue(comp1);
-    uint32_t current;
-    int depth = 0;
-    while(!fringe.isEmpty()){
-        current = fringe.dequeue();
-        depth ++;
-        //if(depth == 100) break;
-        for(uint32_t i = 0; i < updateIndex_[current].size; i++){
-            if(updateIndex_[current].connected[i] == comp2){
-                //std::cout << "Connected ";
-                //std::cout << "SUCCESS DEPTH=" << depth << std::endl;
-                return true;
-            }
-            else if(updateIndex_[current].connected[i] != comp1){
-                visited.get(updateIndex_[current].connected[i], rescode);
-                if(rescode == NOT_FOUND){
-                    fringe.enqueue(updateIndex_[current].connected[i]);
-                    visited.add(updateIndex_[current].connected[i], updateIndex_[current].connected[i]);
-                }
+    updateIndex_[comp2] = commonCC;
+    if(toBeMerged != -1){
+        for(uint32_t i = 0; i < mergedSize_; i++){
+            if(updateIndex_[merged_[i]] == toBeMerged){
+                updateIndex_[merged_[i]] = commonCC;
             }
         }
     }
-    //std::cout << "FAILED DEPTH=" << depth << std::endl;
-    return false;
+
+    if(mergedSize_ >= mergedMax_ - 1){
+        int32_t *resized;
+        uint32_t newSize = 2 * mergedMax_;
+        resized = (int32_t*) realloc(merged_, sizeof(int32_t) * newSize);
+        if(resized == NULL){
+            std::cout << "Failure to allocate memory" << std::endl;
+            return ;
+        }
+        merged_ = resized;
+        mergedMax_ = newSize;
+    }
+    merged_[mergedSize_] = comp2;
+    mergedSize_++;
+    merged_[mergedSize_] = comp1;
+    mergedSize_++;
+    mergedHits += mergedSize_;
+}
+
+int32_t CC::findNodeConnectedComponentID(uint32_t nodeId){
+    return ccindex_[nodeId];
+}
+
+bool CC::areConnected(int32_t comp1, int32_t comp2){
+    if(comp1 == comp2) {
+        return true;   
+    }
+    else if(comp1 == -1 || comp2 == -1){
+        return false;
+    }
+    else if(updateIndex_[comp1] == -1 && updateIndex_[comp2] == -1){
+        return false;
+    }
+    else if(updateIndex_[comp1] == updateIndex_[comp2]){
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 void CC::initUpdateIndex(uint32_t size){
-//    std::cout << "init update index" << std::endl;
-    this->updateIndexSize_ = 4 * size;
-    this->updateIndex_ = (ConnectData*) malloc(sizeof(ConnectData) *  this->updateIndexSize_);
-    memset(this->updateIndex_, 0, sizeof(ConnectData) * this->updateIndexSize_);
+    updateIndexSize_ = lastComponent + updateMargin_;
+    updateIndex_ = (int32_t *) malloc(sizeof(int32_t) * updateIndexSize_);
+    memset(updateIndex_, -1, sizeof(int32_t) * updateIndexSize_);
+    merged_ = (int32_t *) malloc(sizeof(int32_t) * mergedInitial_);
+    mergedSize_ = 0;
+    mergedMax_ = mergedInitial_;
+    mergedHits = 0;
 }
 
 uint32_t CC::getComponentCount(){
     return ccSize_;
 }
 
+uint32_t CC::getMergedSize(){
+    return mergedSize_;
+}
 /****************************/
 /*--------END OF CC---------*/
 /****************************/
@@ -137,7 +146,6 @@ uint32_t CC::getComponentCount(){
 DynamicGraph::DynamicGraph() : visited_(visitedSize_){
     // Create a CC
     this->connectedComponents_ = new CC();
-    //this->estimateConnectedComponents();
 }
 
 DynamicGraph::~DynamicGraph(){
@@ -191,12 +199,6 @@ void DynamicGraph::estimateConnectedComponents(){
                             fringe.enqueue(currentNeighbors[i]);
                             visited_.add(currentNeighbors[i], currentNeighbors[i]);
                             this->connectedComponents_->addNodeToComponent(currentNeighbors[i], currentComponent);
-                            // if(currentNeighbors[i] == 449448){
-                            //     std::cout << "1.Found node in question, CC:" << currentComponent << std::endl;
-                            //     getchar();
-                            
-                            //     std::cout << this->connectedComponents_->findNodeConnectedComponentID(449448) << std::endl;
-                            // }
                         }
                     }
                     // Continue iterating
@@ -218,11 +220,6 @@ void DynamicGraph::estimateConnectedComponents(){
                         // Check if node is already visited
                         visited_.get(currentNeighbors[i], visitedcode);
                         if(visitedcode == NOT_FOUND){
-                            // if(currentNeighbors[i] == 449448){
-                            //     std::cout << "2.Found node in question, CC:" << currentComponent << std::endl;
-                            //     getchar();
-                            // }
-                            //std::cout << "Found: " << currentNeighbors[i] << std::endl;
                             fringe.enqueue(currentNeighbors[i]);
                             visited_.add(currentNeighbors[i], currentNeighbors[i]);
                             this->connectedComponents_->addNodeToComponent(currentNeighbors[i], currentComponent);
@@ -250,27 +247,36 @@ bool DynamicGraph::postAdd(uint32_t from, uint32_t to){
         int32_t cfrom, cto;
         cfrom = this->connectedComponents_->findNodeConnectedComponentID(from);
         cto = this->connectedComponents_->findNodeConnectedComponentID(to);
-        if(cfrom != cto && cfrom != -1 && cto != -1){
-            this->connectedComponents_->joinComponents(cfrom, cto);
-            return true;
-        }
 
-        if(cfrom == -1){
+        if(cfrom == -1 && cto == -1){ // Case both do not exist
+            // Create them both and add them to the same CC
             this->connectedComponents_->lastComponent++;
             this->connectedComponents_->postAddNodeToComponent(from, this->connectedComponents_->lastComponent);
             cfrom = this->connectedComponents_->findNodeConnectedComponentID(from);
-        }
-
-        if(cto == -1){
-            this->connectedComponents_->lastComponent++;
-            this->connectedComponents_->postAddNodeToComponent(to, this->connectedComponents_->lastComponent);            
+            this->connectedComponents_->postAddNodeToComponent(to, this->connectedComponents_->lastComponent);
             cto = this->connectedComponents_->findNodeConnectedComponentID(to);
         }
-
-        this->connectedComponents_->joinComponents(cfrom, cto);
+        else{
+            if(cfrom == -1){ // Only from exists
+                // Create it and put it on to CC
+                this->connectedComponents_->postAddNodeToComponent(from, this->connectedComponents_->findNodeConnectedComponentID(to));
+            }
+            else if(cto == -1){ // Only to exists
+                // Create it and put it on from CC
+                this->connectedComponents_->postAddNodeToComponent(to, this->connectedComponents_->findNodeConnectedComponentID(from));
+            }
+            else{
+                // Both CCs exist
+                // Join them if not already connected
+                if(!this->connectedComponents_->areConnected(cfrom, cto)){
+                    this->connectedComponents_->joinComponents(cfrom, cto);
+                }
+            }
+        }
+        return true;
     }
     else{
-        std::cout << "NOT ADDED" << std::endl;
+        return false;
     }
 }
 
@@ -283,20 +289,10 @@ long DynamicGraph::query(uint32_t from, uint32_t to){
     comp1 = this->connectedComponents_->findNodeConnectedComponentID(from);
     comp2 = this->connectedComponents_->findNodeConnectedComponentID(to);
 
-    if(comp1 == -1 || comp2 == -1){
-        //TODO: CHECK!
-        //std::cout << "Hell Nodes" << from << " " << to << " CC:" << comp1 << " " << comp2 << " ";
-        return -1;
-    }
-    if(comp1 == comp2){
-        // Both are in the same CC, searching
-        return Graph::query(from, to);
-    }
-    else if(this->connectedComponents_->areConnected(comp1, comp2)){
+    if(this->connectedComponents_->areConnected(comp1, comp2)){
         return Graph::query(from, to);
     }
     // If they dont belong in the same CC, we know no connection exists
-    //std::cout << "Not Connected";
     return -1;
 }
 

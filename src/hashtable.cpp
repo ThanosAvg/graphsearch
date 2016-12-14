@@ -45,7 +45,6 @@ template <class T>
 T Hash<T>::get(hashkey_t key, ResultCode& rescode){
     long bucketIndex;
     bucketIndex = this->hash_(key);
-    uint32_t current = 0;
     BucketStore<T> *currentStore = this->store;
     while(currentStore != 0){
         for(uint32_t i = 0; i < this->maxCollisions_; i++){

@@ -17,30 +17,32 @@ class CC{
     public:
     CC();
     ~CC();
-    void addNodeToComponent(uint32_t nodeId, uint32_t ccId);
-    void postAddNodeToComponent(uint32_t nodeId, uint32_t ccId);
+    void addNodeToComponent(uint32_t nodeId, int32_t ccId);
+    void postAddNodeToComponent(uint32_t nodeId, int32_t ccId);
     //bool insertNewEdge(uint32_t nodeIdS, uint32_t nodeIdE);
-    void joinComponents(uint32_t comp1, uint32_t comp2);
+    void joinComponents(int32_t comp1, int32_t comp2);
     int32_t findNodeConnectedComponentID(uint32_t nodeId);
-    bool areConnected(uint32_t comp1, uint32_t comp2);
+    bool areConnected(int32_t comp1, int32_t comp2);
     bool rebuildIndexes();
     bool destroyConnectedComponents();
     uint32_t lastComponent;
     void initUpdateIndex(uint32_t size);
     uint32_t getComponentCount();
+    uint32_t getMergedSize();
+    uint32_t mergedHits;
 private:
-    uint32_t *ccindex_;
-    uint32_t ccSize_;
+    int32_t *ccindex_;
+    int32_t ccSize_;
     uint32_t ccMax_;
-    static const uint32_t ccLimit_ = 10000000;
-    //Hash<uint32_t> ccindex_;
-    //Hash<uint32_t> updateIndex_;
-    ConnectData *updateIndex_;
+    static const uint32_t ccLimit_ = 8000000;
+    int32_t *updateIndex_;
     uint32_t updateIndexSize_;
-    static const uint32_t updateLimit_ = 4000;
+    static const uint32_t updateMargin_ = 1000;
     uint32_t metricVal_;
-    static const int bucketNIndex_ = 37;
-    static const int bucketNUpdate_ = 37;
+    int32_t *merged_;
+    uint32_t mergedSize_;
+    uint32_t mergedMax_;
+    static const int mergedInitial_ = 5000;
 };
 
 class DynamicGraph : public Graph{

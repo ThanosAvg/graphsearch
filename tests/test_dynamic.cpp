@@ -43,7 +43,6 @@ int main(){
     ssize_t read;
     uint32_t from = 0, to = 0;
     char status = 0;
-    int count = 0;
     FILE *file = fopen("medium/mediumGraph.txt", "r");
     if(file == NULL){
         std::cout << "File error" << std::endl;
@@ -95,10 +94,12 @@ int main(){
         }
         else{
             std::cout << "Uknown parameter,quitting..."  << std::endl;
-            break;
+            //break;
+            continue;
         }
     }
-    std::cout << "EOF" << std::endl;
+    std::cout << "Merge Size: " << graph.getCC()->getMergedSize() << std::endl;
+    std::cout << "Merge Hits: " << graph.getCC()->mergedHits << std::endl;
     //fclose(file);
 
     //free(line);
