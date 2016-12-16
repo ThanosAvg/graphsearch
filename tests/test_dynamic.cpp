@@ -100,6 +100,7 @@ int main(){
     }
     std::cout << "Merge Size: " << graph.getCC()->getMergedSize() << std::endl;
     std::cout << "Merge Hits: " << graph.getCC()->mergedHits << std::endl;
+    std::cout << "EOF" << std::endl;
     //fclose(file);
 
     //free(line);

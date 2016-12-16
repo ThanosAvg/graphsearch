@@ -65,12 +65,6 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
         newAddr = buffer->allocNewNode();
         listNode = buffer->getListNode(lNodePtr);
 
-        //if(newAddr == PTR_NULL){
-        //    return false; // We failed to allocate
-        //}
-
-        ListNode *newNode = buffer->getListNode(newAddr);
-
         listNode->setNextListNode(newAddr);
         listNode = buffer->getListNode(newAddr);
         listNode->addNeighbor(node);

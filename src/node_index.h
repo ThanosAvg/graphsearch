@@ -31,6 +31,7 @@ public:
     void incrementNeighbors(uint32_t nodeId);
     void resetCursor();
     uint32_t getNextId(bool &error);
+    int32_t getMaxId();
 private:
     static const long startSize_ = 7000000;
     Buffer* buffer_;       // Pointer to buffer associated with this index

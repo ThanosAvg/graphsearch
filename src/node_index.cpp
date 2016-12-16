@@ -155,3 +155,7 @@ uint32_t NodeIndex::getNextId(bool &error){
     error = true;
     return 0;
 }
+
+int32_t NodeIndex::getMaxId(){
+    return this->maxId_;
+}

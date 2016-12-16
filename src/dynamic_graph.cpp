@@ -67,11 +67,21 @@ void CC::joinComponents(int32_t comp1, int32_t comp2){
     }
     int32_t toBeMerged = updateIndex_[comp2];
 
+
+    bool duplicateComp1 = false;
+    bool duplicateComp2 = false;
+    
     updateIndex_[comp2] = commonCC;
     if(toBeMerged != -1){
         for(uint32_t i = 0; i < mergedSize_; i++){
             if(updateIndex_[merged_[i]] == toBeMerged){
                 updateIndex_[merged_[i]] = commonCC;
+            }
+            if(merged_[i] == comp1){
+                duplicateComp1 = true;
+            }
+            else if(merged_[i] == comp2){
+                duplicateComp2 = true;
             }
         }
     }
@@ -87,10 +97,14 @@ void CC::joinComponents(int32_t comp1, int32_t comp2){
         merged_ = resized;
         mergedMax_ = newSize;
     }
-    merged_[mergedSize_] = comp2;
-    mergedSize_++;
-    merged_[mergedSize_] = comp1;
-    mergedSize_++;
+    if(!duplicateComp1){
+        merged_[mergedSize_] = comp1;
+        mergedSize_++;
+    }
+    if(!duplicateComp2){
+        merged_[mergedSize_] = comp2;
+        mergedSize_++;
+    }
     mergedHits += mergedSize_;
 }
 
