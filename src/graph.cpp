@@ -162,11 +162,8 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uin
                     if(resCode == FOUND){
                         return true;
                     }
-                    myVisited->get(nodeNeighbors[i], resCode);
-                    if(resCode == NOT_FOUND){
-                        queue->enqueue(nodeNeighbors[i]);
-                        currentNeighbors+=index->getNeighborCount(nodeNeighbors[i])+1;
-                    }
+                    queue->enqueue(nodeNeighbors[i]);
+                    currentNeighbors++;
                 }
                 //Get the next list node pointer from the current one
                 currentNodePtr = currentListNode->getNextListNode();
