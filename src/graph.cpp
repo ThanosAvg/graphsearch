@@ -41,8 +41,6 @@ bool Graph::add(uint32_t from, uint32_t to){
                                    from);
         }
     }
-    //suc1 = this->addToPair(this->incomingIndex_, this->incomingBuffer_, to, from);
-    //suc2 = this->addToPair(this->outgoingIndex_, this->outgoingBuffer_, from, to);
     return suc1 && suc2;
 }
 
@@ -90,12 +88,8 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
 
     // Check if neighbor already exists
     if(listNode->containsNeighbor(node)){
-        return true; // Its already there
+        return false; // Its already there
     }
-
-    // Increment neighbor count in index
-    index->incrementNeighbors(target);
-    //cout << target << "->" << index->getNeighborCount(target) << endl;
 
     // Skip if full
     while(listNode->getNeighborMax() == listNode->getNeighborCount()){
@@ -115,6 +109,8 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
 
             // Update list tail
             index->setListTail(target, newAddr);
+            listNode=buffer->getListNode(newAddr);
+            break;
         }
 
         lNodePtr=listNode->getNextListNode();
@@ -126,6 +122,7 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
         }
     }
     listNode->addNeighbor(node);
+    index->incrementNeighbors(target);
     return true;
 }
 
@@ -165,8 +162,11 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uin
                     if(resCode == FOUND){
                         return true;
                     }
-                    queue->enqueue(nodeNeighbors[i]);
-                    currentNeighbors++;
+                    myVisited->get(nodeNeighbors[i], resCode);
+                    if(resCode == NOT_FOUND){
+                        queue->enqueue(nodeNeighbors[i]);
+                        currentNeighbors+=index->getNeighborCount(nodeNeighbors[i])+1;
+                    }
                 }
                 //Get the next list node pointer from the current one
                 currentNodePtr = currentListNode->getNextListNode();

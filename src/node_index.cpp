@@ -96,10 +96,10 @@ ptr NodeIndex::getListTail(uint32_t nodeId){
 
 long NodeIndex::getNeighborCount(uint32_t nodeId){
     if(nodeId >= this->currentSize_){
-        return -1;
+        return 0;
     }
     else if(this->array_[nodeId].flag == 0){
-        return -1;
+        return 0;
     }
     else{
         return array_[nodeId].neighborCount_;

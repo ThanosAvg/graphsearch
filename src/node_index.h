@@ -5,7 +5,6 @@
 
 #include "types.h"
 #include "buffer.h"
-#include "table.h"
 #include "hashtable.h"
 
 //typedef ptr NodeIndexData;
@@ -38,7 +37,7 @@ private:
     NodeIndexData* array_; // Array holding the node data
     uint32_t currentSize_; // Current array size (doubles if needed)
     int32_t cursor_;       // Last getNextId position
-    int32_t maxId_;        // Maximum node id 
+    int32_t maxId_;        // Maximum node id
 };
 
 #endif

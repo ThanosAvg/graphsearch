@@ -45,7 +45,7 @@ private:
     BucketInfo<T> *bInfo;
     uint32_t bucketNumber_;
     uint32_t size_;
-    static const uint32_t maxCollisions_ = 100;
+    static const uint32_t maxCollisions_ = 20;
     T blank_;
 };
 
