@@ -19,18 +19,22 @@ public:
     // Takes 2 node ids and calculates the cost of the path between them, or -1 if either no
     // path exists or invalid input is given
     long query(uint32_t from, uint32_t to);
-    bool expandLevel(NodeIndex* index,Buffer* buffer,Queue* queue,Hash<uint32_t>* myVisited,Hash<uint32_t>* otherVisited,uint32_t& currentNeighbors);
+    bool expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
+        uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors);
 protected:
-    static const uint32_t closedSetSize_ = 997; //131;
-
     NodeIndex* incomingIndex_;
     NodeIndex* outgoingIndex_;
 
     Buffer* incomingBuffer_;
     Buffer* outgoingBuffer_;
 
-    Hash<uint32_t> startVisited;
-    Hash<uint32_t> endVisited;
+    uint32_t* startVisited;
+    uint32_t startVisitedKey;
+    uint32_t startVisitedSize;
+
+    uint32_t* endVisited;
+    uint32_t endVisitedKey;
+    uint32_t endVisitedSize;
 
     // Private function to assist insertion in graph.
     // Takes either incomingIndex or outgoingIndex and their respective buffer
@@ -49,10 +53,10 @@ public:
     uint32_t strongConnect(uint32_t node,uint32_t &index,Stack* stack,bool* onStack);
     bool estimateStronglyConnectedComponents();
     void estimateComponentsNeighbors(char select);
-    bool expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uint32_t>* myVisited,
-         Hash<uint32_t>* otherVisited, uint32_t& currentNeighbors, uint32_t componentId);
-    bool expandLevelPrunned(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uint32_t>* myVisited,
-         Hash<uint32_t>* otherVisited, uint32_t& currentNeighbors,GrailIndex* grail,uint32_t target_node);
+    bool expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t* visitedArray,
+         uint32_t visitedKey,uint32_t* otherVisited,uint32_t otherKey, uint32_t& currentNeighbors, uint32_t componentId);
+    bool expandLevelPrunned(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t* visitedArray,
+         uint32_t visitedKey,uint32_t* otherVisited,uint32_t otherKey, uint32_t& currentNeighbors,GrailIndex* grail,uint32_t target_node);
     long estimateShortestPathStronglyConnectedComponents(uint32_t source_node, uint32_t target_node);
     long estimateShortestPathPrunned(uint32_t source_node, uint32_t target_node);
 
@@ -63,6 +67,12 @@ public:
     GrailAnswer isReachableGrailIndex(uint32_t source_node, uint32_t target_node, GrailIndex* grail);
 
     long staticQuery(uint32_t,uint32_t);
+
+    uint32_t* visitedStart;
+    uint32_t visitedNumberStart;
+
+    uint32_t* visitedEnd;
+    uint32_t visitedNumberEnd;
 
 private:
     SCC* scc_;

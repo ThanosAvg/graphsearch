@@ -8,11 +8,17 @@
 
 using namespace std;
 
-Graph::Graph() : startVisited(closedSetSize_), endVisited(closedSetSize_){
+Graph::Graph(){
     this->incomingBuffer_ = new Buffer();
     this->outgoingBuffer_ = new Buffer();
     this->incomingIndex_ = new NodeIndex(this->incomingBuffer_);
     this->outgoingIndex_ = new NodeIndex(this->outgoingBuffer_);
+    this->startVisited = NULL;
+    this->endVisited = NULL;
+    this->startVisitedKey = 0;
+    this->endVisitedKey = 0;
+    this->startVisitedSize = 0;
+    this->endVisitedSize = 0;
 }
 
 bool Graph::add(uint32_t from, uint32_t to){
@@ -92,7 +98,9 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
     }
 
     // Skip if full
-    while(listNode->getNeighborMax() == listNode->getNeighborCount()){
+    uint32_t neighborMaxNumber=listNode->getNeighborMax();
+
+    while(neighborMaxNumber == listNode->getNeighborCount()){
 
         // Check if next list node exists
         if(listNode->getNextListNode() == PTR_NULL){
@@ -118,7 +126,8 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
 
         // Check if neighbor already exists
         if(listNode->containsNeighbor(node)){
-            return false; // Its already there
+            // Its already there
+            return false;
         }
     }
     listNode->addNeighbor(node);
@@ -126,10 +135,10 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
     return true;
 }
 
-bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uint32_t>* myVisited,
-     Hash<uint32_t>* otherVisited, uint32_t& currentNeighbors){
-    /* Expands the current nodes in the queue(one level).
-    Returns true if the desired path is found,false if not. */
+bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
+    uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors){
+    // Expands the current nodes in the queue(one level).
+    // Returns true if the desired path is found,false if not.
 
     ResultCode resCode;
     ptr currentNodePtr;
@@ -140,11 +149,10 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uin
     uint32_t currentNode = queue->dequeue();
 
     while(currentNode != LEVEL_END){
-
         //If current Node is already visited skip
-        myVisited->get(currentNode, resCode);
-        if(resCode == NOT_FOUND){
-            myVisited->add(currentNode, currentNode);
+        if(myVisited[currentNode]!=myVisitedKey){
+            //If it's not visited mark it as visited
+            myVisited[currentNode]=myVisitedKey;
             currentNodePtr = index->getListHead(currentNode);
             if(currentNodePtr == PTR_NULL){
                 continue;
@@ -157,9 +165,8 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uin
                 //For every neighbors inside the current list node
                 nodeNeighborsNumber = currentListNode->getNeighborCount();
                 for(uint32_t i = 0; i < nodeNeighborsNumber; i++){
-                    //If current neighbor is the target one:return
-                    otherVisited->get(nodeNeighbors[i], resCode);
-                    if(resCode == FOUND){
+                    //If current neighbor has been found on the other side:return
+                    if(targetVisited[nodeNeighbors[i]]==targetVisitedKey){
                         return true;
                     }
                     queue->enqueue(nodeNeighbors[i]);
@@ -175,12 +182,13 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uin
         }
         currentNode = queue->dequeue();
     }
+    //Target node not found
     return false;
 }
 
 long Graph::query(uint32_t from, uint32_t to){
-    /* Finds and returns the path distance from the source node to the target node.
-    Returns -1 if a paths does not exist. */
+    // Finds and returns the path distance from the source node to the target node.
+    // Returns -1 if a paths does not exist.
 
     if(from==to)
         return 0;
@@ -191,11 +199,35 @@ long Graph::query(uint32_t from, uint32_t to){
         return -1;
     }
 
+    //Create visited arrays if not created
+    if(this->startVisited==NULL){
+        this->startVisitedSize=this->outgoingIndex_->getCurrentSize();
+        this->startVisited=(uint32_t*)calloc(this->startVisitedSize,sizeof(uint32_t));
+    }
+    //else if(this->startVisitedSize<this->outgoingIndex_->getCurrentSize())
+        //cout << "startVistedSize Increased" << endl;
+    if(this->endVisited==NULL){
+        this->endVisitedSize=this->incomingIndex_->getCurrentSize();
+        this->endVisited=(uint32_t*)calloc(this->endVisitedSize,sizeof(uint32_t));
+    }
+    //else if(this->endVisitedSize<this->incomingIndex_->getCurrentSize())
+        //cout << "endVistedSize Increased" << endl;
+
+    //Check if maximum key has been reached and reset the visited arrays
+    if(this->startVisitedKey==UINT_MAX){
+        memset(this->startVisited,0,this->outgoingIndex_->getCurrentSize());
+        this->startVisitedKey=0;
+    }
+    if(this->endVisitedKey==UINT_MAX){
+        memset(this->endVisited,0,this->incomingIndex_->getCurrentSize());
+        this->endVisitedKey=0;
+    }
+    //Increase the visited key of the current search
+    this->startVisitedKey++;
+    this->endVisitedKey++;
+
     //Create two queues for each side for bi-bfs
     Queue startQueue, endQueue;
-    //Reset current visited data structure
-    startVisited.reset();
-    endVisited.reset();
 
     //Push into the queues,the initial nodes for each side(level 0)
     startQueue.enqueue(from);
@@ -217,8 +249,8 @@ long Graph::query(uint32_t from, uint32_t to){
         if(startCurrentNeighbors <= endCurrentNeighbors){
             startCurrentNeighbors = 0;
             //Expand the nodes currently in queue(one level),and add the next level nodes
-            if(expandLevel(this->outgoingIndex_,this->outgoingBuffer_,&startQueue,
-                &startVisited,&endVisited,startCurrentNeighbors)==true)
+            if(expandLevel(this->outgoingIndex_,this->outgoingBuffer_,&startQueue,this->startVisitedKey,
+                this->startVisited,this->endVisitedKey,this->endVisited,startCurrentNeighbors)==true)
                 return startCurrentLength+endCurrentLength;
             startCurrentLength++;
             if(startQueue.isEmpty())
@@ -227,8 +259,8 @@ long Graph::query(uint32_t from, uint32_t to){
         }
         else{
             endCurrentNeighbors = 0;
-            if(expandLevel(this->incomingIndex_,this->incomingBuffer_,&endQueue,
-                &endVisited,&startVisited,endCurrentNeighbors)==true)
+            if(expandLevel(this->incomingIndex_,this->incomingBuffer_,&endQueue,this->endVisitedKey,
+                this->endVisited,this->startVisitedKey,this->startVisited,endCurrentNeighbors)==true)
                 return startCurrentLength+endCurrentLength;
             endCurrentLength++;
             if(endQueue.isEmpty())
@@ -241,216 +273,13 @@ long Graph::query(uint32_t from, uint32_t to){
     return -1;
 }
 
-/*
-long Graph::query(uint32_t from, uint32_t to){
-
-    // Validate nodes
-    if(this->outgoingIndex_->getListHead(from) == PTR_NULL ||
-       this->incomingIndex_->getListHead(to) == PTR_NULL){
-        return -1;
-    }
-
-    Queue startQueue, endQueue;
-
-    //Hash<uint32_t> startVisited((this)->closedSetSize_);
-    //Hash<uint32_t> endVisited((this)->closedSetSize_);
-    startVisited.reset();
-    endVisited.reset();
-    ResultCode resCodeStart, resCodeEnd;
-
-    startQueue.enqueue(UINT_MAX-1);
-    endQueue.enqueue(UINT_MAX-1);
-
-    uint32_t startCurrentNode,endCurrentNode;
-    long startCurrentLength,endCurrentLength;
-    ListNode* startCurrentListNode;
-    ListNode* endCurrentListNode;
-    ptr startCurrentNodePtr,endCurrentNodePtr;
-    uint32_t* startNodeNeighbors;
-    uint32_t* endNodeNeighbors;
-    uint32_t startNodeNeighborsNumber;
-    uint32_t endNodeNeighborsNumber;
-    uint32_t startCurrentNeighbors=0;
-    uint32_t endCurrentNeighbors=0;
-
-    NodeIndex* outgoingIndex = this->outgoingIndex_;
-    NodeIndex* incomingIndex = this->incomingIndex_;
-
-    startCurrentLength = 0;
-    endCurrentLength = 0;
-    startCurrentNode = from;
-    endCurrentNode = to;
-
-    while(true){
-
-    	if(startCurrentNeighbors <= endCurrentNeighbors){
-            startCurrentNeighbors = 0;
-
-            while(startCurrentNode != UINT_MAX-1){
-
-                //If current Node is already visited skip
-                startVisited.get(startCurrentNode, resCodeStart);
-                if(resCodeStart == NOT_FOUND){
-                    startVisited.add(startCurrentNode, startCurrentNode);
-                    startCurrentNodePtr=outgoingIndex->getListHead(startCurrentNode);
-                    if(startCurrentNodePtr == PTR_NULL){
-                        continue;
-                    }
-                    startCurrentListNode=outgoingBuffer_->getListNode(startCurrentNodePtr);
-
-                    //Push node's neighbors that are not in closed set
-                    while(true){
-                        startNodeNeighbors=startCurrentListNode->getNeighborsPtr();
-                        //For every neighbors inside the current list node
-                        startNodeNeighborsNumber=startCurrentListNode->getNeighborCount();
-                        for(uint32_t i = 0; i < startNodeNeighborsNumber; i++){
-                            //If current neighbor is the target one:return
-                            endVisited.get(startNodeNeighbors[i], resCodeEnd);
-                            if(resCodeEnd == FOUND){
-                                return startCurrentLength+endCurrentLength;
-                            }
-                            startQueue.enqueue(startNodeNeighbors[i]);
-                            startCurrentNeighbors++;
-                        }
-                        //Get the next list node pointer from the current one
-                        startCurrentNodePtr=startCurrentListNode->getNextListNode();
-                        if(startCurrentNodePtr == PTR_NULL)
-                            break;
-                        else
-                            startCurrentListNode=outgoingBuffer_->getListNode(startCurrentNodePtr);
-                    }
-                }
-                startCurrentNode = startQueue.dequeue();
-            }
-
-            //Update for next level
-            startCurrentLength++;
-            if(startQueue.isEmpty())
-                return -1;
-            startQueue.enqueue(UINT_MAX-1);
-            startCurrentNode=startQueue.dequeue();
-    	}
-
-        //End side implementation
-
-    	else{
-            endCurrentNeighbors = 0;
-
-            while(endCurrentNode != UINT_MAX-1){
-
-                //If current Node is already visited skip
-                endVisited.get(endCurrentNode, resCodeEnd);
-                if(resCodeEnd == NOT_FOUND){
-                    endVisited.add(endCurrentNode, endCurrentNode);
-                    endCurrentNodePtr=incomingIndex->getListHead(endCurrentNode);
-                    if(endCurrentNodePtr == PTR_NULL){
-                        continue;
-                    }
-                    endCurrentListNode=incomingBuffer_->getListNode(endCurrentNodePtr);
-
-                    //Push node's neighbors that are not in closed set
-                    while(true){
-                        endNodeNeighbors = endCurrentListNode->getNeighborsPtr();
-                        //For every neighbors inside the current list node
-                        endNodeNeighborsNumber=endCurrentListNode->getNeighborCount();
-                        for(uint32_t i = 0; i < endNodeNeighborsNumber; i++){
-                            //If current neighbor is the target one:return
-                            startVisited.get(endNodeNeighbors[i], resCodeStart);
-                            if(resCodeStart == FOUND){
-                                return startCurrentLength + endCurrentLength;
-                            }
-                            endQueue.enqueue(endNodeNeighbors[i]);
-                            endCurrentNeighbors++;
-                        }
-                        //Get the next list node pointer from the current one
-                        endCurrentNodePtr = endCurrentListNode->getNextListNode();
-                        if(endCurrentNodePtr == PTR_NULL)
-                            break;
-                        else
-                            endCurrentListNode = incomingBuffer_->getListNode(endCurrentNodePtr);
-                    }
-                }
-                endCurrentNode = endQueue.dequeue();
-            }
-
-            //Update for next level
-            endCurrentLength++;
-            if(endQueue.isEmpty())
-                return -1;
-            endQueue.enqueue(UINT_MAX-1);
-            endCurrentNode = endQueue.dequeue();
-        }
-    }
-    return -1;
-}
-
-bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node, bool checkDuplicates){
-    // Check if node exists
-    ptr lNodePtr;
-    if(checkDuplicates){
-        lNodePtr = index->getListHead(target);
-    }
-    else{
-        lNodePtr = index->getListTail(target);
-    }
-
-    if(lNodePtr == PTR_NULL){
-        // Create node
-        index->insertNode(target);
-        lNodePtr = index->getListHead(target);
-    }
-    // Get actual list node
-    ListNode* listNode = buffer->getListNode(lNodePtr);
-
-    // Check if neighbor already exists
-    if(checkDuplicates){
-        if(listNode->containsNeighbor(node)){
-            return true; // Its already there
-        }
-    }
-
-    // Increment neighbor count in index
-    index->incrementNeighbors(target);
-    //cout << target << "->" << index->getNeighborCount(target) << endl;
-
-    // Skip if full
-    while(listNode->getNeighborMax() == listNode->getNeighborCount()){
-
-        // Check if next list node exists
-        if(listNode->getNextListNode() == PTR_NULL){
-            // We create the next list node
-            ptr newAddr;
-            newAddr = buffer->allocNewNode();
-            listNode=buffer->getListNode(lNodePtr);
-
-            if(newAddr == PTR_NULL){
-                return false; // We failed to allocate
-            }
-
-            listNode->setNextListNode(newAddr);
-
-            // Update list tail
-            index->setListTail(target, newAddr);
-        }
-
-        lNodePtr=listNode->getNextListNode();
-        listNode = buffer->getListNode(lNodePtr);
-
-        // Check if neighbor already exists
-        if(checkDuplicates){
-            if(listNode->containsNeighbor(node)){
-                return true; // Its already there
-            }
-        }
-    }
-    listNode->addNeighbor(node);
-    return true;
-}
-*/
-
 Graph::~Graph(){
     delete incomingBuffer_;
     delete outgoingBuffer_;
     delete incomingIndex_;
     delete outgoingIndex_;
+    if(startVisited!=NULL)
+        free(startVisited);
+    if(endVisited!=NULL)
+        free(endVisited);
 }
