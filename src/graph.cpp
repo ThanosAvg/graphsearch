@@ -158,6 +158,7 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t
                 continue;
             }
             currentListNode = buffer->getListNode(currentNodePtr);
+            currentNeighbors += index->getNeighborCount(currentNode);
 
             //Push node's neighbors that are not in closed set
             while(true){
@@ -170,7 +171,6 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t
                         return true;
                     }
                     queue->enqueue(nodeNeighbors[i]);
-                    currentNeighbors++;
                 }
                 //Get the next list node pointer from the current one
                 currentNodePtr = currentListNode->getNextListNode();
