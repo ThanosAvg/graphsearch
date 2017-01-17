@@ -65,8 +65,8 @@ bool QueryArray::addBurst(uint32_t line){
     return true;
 }
 
-uint32_t* QueryArray::getBurst(uint32_t index){
-    return &(burstArray_[index]);
+uint32_t QueryArray::getBurst(uint32_t index){
+    return burstArray_[index];
 }
 
 uint32_t QueryArray::getCurrentBurstSize(){

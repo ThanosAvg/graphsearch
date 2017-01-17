@@ -20,7 +20,7 @@ public:
     uint32_t getCurrentQueryDataSize();
 
     bool addBurst(uint32_t line);
-    uint32_t* getBurst(uint32_t index);
+    uint32_t getBurst(uint32_t index);
     uint32_t getCurrentBurstSize();
 private:
     QueryData* dataArray_;
