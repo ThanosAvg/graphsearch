@@ -40,17 +40,17 @@ int main(){
     while(1){
         myChar = getc(stdin);
         if(myChar == 'F'){
-            qarr.addBurst(line);
+            qarr.addBurst(queries - 1);
         }
         else if(myChar == EOF){
             break;
         }
         else if(myChar == 'Q'){
             scanf("%u %u\n", &from, &to);
+            qarr.addQuery(from, to, queries, 0);
             queries++;
             //std::cout << "Query " << from << " " << to << std::endl;
             //std::cout << graph.query(from, to) << std::endl;
-            qarr.addQuery(from, to, line, 0);
         }
         else if(myChar == 'A'){
             scanf("%u %u\n", &from, &to);
