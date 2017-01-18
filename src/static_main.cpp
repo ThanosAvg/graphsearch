@@ -27,6 +27,7 @@ bool testLoadFile(){
     char status = 0;
     int count = 0;
     FILE *file = fopen("../tests/medium/mediumGraph.txt", "r");
+    //FILE *file = fopen("../tests/large/large.txt", "r");
     if(file == NULL){
         std::cout << "File error" << std::endl;
         return false;
@@ -47,6 +48,7 @@ bool testLoadFile(){
 
     fclose(file);
     file = fopen("../tests/medium/mediumWorkload_static_FINAL.txt", "r");
+    //file = fopen("../tests/large/largeWorkload_48000_40.txt", "r");
     if(file == NULL){
         std::cout << "File error" << std::endl;
         return false;

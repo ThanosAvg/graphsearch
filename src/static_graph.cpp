@@ -9,6 +9,9 @@
 #include <iostream>
 #include <limits.h>
 #include <time.h>
+#include <algorithm>    // std::shuffle
+#include <random>       // std::default_random_engine
+#include <chrono>       // std::chrono::system_clock
 
 using namespace std;
 
@@ -89,6 +92,16 @@ uint32_t StaticGraph::strongConnect(uint32_t node, uint32_t &index, Stack* stack
 
 bool StaticGraph::estimateStronglyConnectedComponents(){
     uint32_t index=1;
+    this->startVisitedSize=this->outgoingIndex_->getCurrentSize();
+    this->endVisitedSize=this->incomingIndex_->getCurrentSize();
+
+    // VISITED
+    this->startVisited=(uint32_t*)calloc(this->startVisitedSize,sizeof(uint32_t));
+    this->startVisitedKey=0;
+
+    this->endVisited=(uint32_t*)calloc(this->endVisitedSize,sizeof(uint32_t));
+    this->endVisitedKey=0;
+    //VISITED
     uint32_t numberOfVertices=this->outgoingIndex_->getCurrentSize();
     this->scc_=new SCC(numberOfVertices);
     Stack* stack=new Stack();
@@ -186,8 +199,8 @@ void StaticGraph::estimateComponentsNeighbors(char select){
     }
 }
 
-bool StaticGraph::expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uint32_t>* myVisited,
-     Hash<uint32_t>* otherVisited, uint32_t& currentNeighbors, uint32_t componentId){
+bool StaticGraph::expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
+    uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors, uint32_t componentId){
     /* Expands the current nodes in the queue(one level).Expands only neighbors that belong to the same component.
     Returns true if the desired path is found,false if not. */
 
@@ -202,9 +215,9 @@ bool StaticGraph::expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue
     while(currentNode != LEVEL_END){
 
         //If current Node is already visited skip
-        myVisited->get(currentNode, resCode);
-        if(resCode == NOT_FOUND){
-            myVisited->add(currentNode, currentNode);
+        if(myVisited[currentNode]!=myVisitedKey){
+            //If it's not visited mark it as visited
+            myVisited[currentNode]=myVisitedKey;
             currentNodePtr = index->getListHead(currentNode);
             if(currentNodePtr == PTR_NULL){
                 continue;
@@ -220,8 +233,7 @@ bool StaticGraph::expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue
                     //Expand nodes belonging to the same component
                     if(this->scc_->findNodeStronglyConnectedComponentID(nodeNeighbors[i])==componentId){
                         //If current neighbor is the target one:return
-                        otherVisited->get(nodeNeighbors[i], resCode);
-                        if(resCode == FOUND){
+                        if(targetVisited[nodeNeighbors[i]]==targetVisitedKey){
                             return true;
                         }
                         queue->enqueue(nodeNeighbors[i]);
@@ -241,8 +253,8 @@ bool StaticGraph::expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue
     return false;
 }
 
-bool StaticGraph::expandLevelPrunned(NodeIndex* index, Buffer* buffer, Queue* queue, Hash<uint32_t>* myVisited,
-     Hash<uint32_t>* otherVisited, uint32_t& currentNeighbors,GrailIndex* grail, uint32_t target_node){
+bool StaticGraph::expandLevelPrunned(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
+    uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors,GrailIndex* grail, uint32_t target_node){
     /* Expands the current nodes in the queue(one level).
     Returns true if the desired path is found,false if not. */
 
@@ -257,9 +269,9 @@ bool StaticGraph::expandLevelPrunned(NodeIndex* index, Buffer* buffer, Queue* qu
     while(currentNode != LEVEL_END){
 
         //If current Node is already visited skip
-        myVisited->get(currentNode, resCode);
-        if(resCode == NOT_FOUND){
-            myVisited->add(currentNode, currentNode);
+        if(myVisited[currentNode]!=myVisitedKey){
+            //If it's not visited mark it as visited
+            myVisited[currentNode]=myVisitedKey;
             currentNodePtr = index->getListHead(currentNode);
             if(currentNodePtr == PTR_NULL){
                 continue;
@@ -275,8 +287,7 @@ bool StaticGraph::expandLevelPrunned(NodeIndex* index, Buffer* buffer, Queue* qu
                     //Expand nodes belonging to the same component
                     if(isReachableGrailIndex(nodeNeighbors[i],target_node,grail)!=NO){
                         //If current neighbor is the target one:return
-                        otherVisited->get(nodeNeighbors[i], resCode);
-                        if(resCode == FOUND){
+                        if(targetVisited[nodeNeighbors[i]]==targetVisitedKey){
                             return true;
                         }
                         queue->enqueue(nodeNeighbors[i]);
@@ -300,16 +311,23 @@ long StaticGraph::estimateShortestPathStronglyConnectedComponents(uint32_t sourc
     /* Finds and returns the path distance from the source node to the target node.
     Returns -1 if a paths does not exist. */
 
-    //if(source_node==target_node)
-        //return 0;
+    //Check if maximum key has been reached and reset the visited arrays
+    if(this->startVisitedKey==UINT_MAX){
+        memset(this->startVisited,0,this->outgoingIndex_->getCurrentSize());
+        this->startVisitedKey=0;
+    }
+    if(this->endVisitedKey==UINT_MAX){
+        memset(this->endVisited,0,this->incomingIndex_->getCurrentSize());
+        this->endVisitedKey=0;
+    }
+    //Increase the visited key of the current search
+    this->startVisitedKey++;
+    this->endVisitedKey++;
 
     uint32_t componentId=this->scc_->findNodeStronglyConnectedComponentID(source_node);
 
     //Create two queues for each side for bi-bfs
     Queue startQueue, endQueue;
-    //Reset current visited data structure
-    startVisited.reset();
-    endVisited.reset();
 
     //Push into the queues,the initial nodes for each side(level 0)
     startQueue.enqueue(source_node);
@@ -332,7 +350,8 @@ long StaticGraph::estimateShortestPathStronglyConnectedComponents(uint32_t sourc
             startCurrentNeighbors = 0;
             //Expand the nodes currently in queue(one level),and add the next level nodes
             if(expandLevelinComponent(this->outgoingIndex_,this->outgoingBuffer_,&startQueue,
-                &startVisited,&endVisited,startCurrentNeighbors,componentId)==true)
+                this->startVisitedKey,this->startVisited,this->endVisitedKey,this->endVisited,
+                startCurrentNeighbors,componentId)==true)
                 return startCurrentLength+endCurrentLength;
             startCurrentLength++;
             if(startQueue.isEmpty())
@@ -342,7 +361,8 @@ long StaticGraph::estimateShortestPathStronglyConnectedComponents(uint32_t sourc
         else{
             endCurrentNeighbors = 0;
             if(expandLevelinComponent(this->incomingIndex_,this->incomingBuffer_,&endQueue,
-                &endVisited,&startVisited,endCurrentNeighbors,componentId)==true)
+                this->endVisitedKey,this->endVisited,this->startVisitedKey,this->startVisited,
+                endCurrentNeighbors,componentId)==true)
                 return startCurrentLength+endCurrentLength;
             endCurrentLength++;
             if(endQueue.isEmpty())
@@ -359,14 +379,21 @@ long StaticGraph::estimateShortestPathPrunned(uint32_t source_node, uint32_t tar
     /* Finds and returns the path distance from the source node to the target node.
     Returns -1 if a paths does not exist. */
 
-    //if(source_node==target_node)
-        //return 0;
+    //Check if maximum key has been reached and reset the visited arrays
+    if(this->startVisitedKey==UINT_MAX){
+        memset(this->startVisited,0,this->outgoingIndex_->getCurrentSize());
+        this->startVisitedKey=0;
+    }
+    if(this->endVisitedKey==UINT_MAX){
+        memset(this->endVisited,0,this->incomingIndex_->getCurrentSize());
+        this->endVisitedKey=0;
+    }
+    //Increase the visited key of the current search
+    this->startVisitedKey++;
+    this->endVisitedKey++;
 
     //Create two queues for each side for bi-bfs
     Queue startQueue, endQueue;
-    //Reset current visited data structure
-    startVisited.reset();
-    endVisited.reset();
 
     //Push into the queues,the initial nodes for each side(level 0)
     startQueue.enqueue(source_node);
@@ -389,7 +416,8 @@ long StaticGraph::estimateShortestPathPrunned(uint32_t source_node, uint32_t tar
             startCurrentNeighbors = 0;
             //Expand the nodes currently in queue(one level),and add the next level nodes
             if(expandLevelPrunned(this->outgoingIndex_,this->outgoingBuffer_,&startQueue,
-                &startVisited,&endVisited,startCurrentNeighbors,this->grailIndexOutgoing_,target_node)==true)
+                this->startVisitedKey,this->startVisited,this->endVisitedKey,this->endVisited,
+                startCurrentNeighbors,this->grailIndexOutgoing_,target_node)==true)
                 return startCurrentLength+endCurrentLength;
             startCurrentLength++;
             if(startQueue.isEmpty())
@@ -399,7 +427,8 @@ long StaticGraph::estimateShortestPathPrunned(uint32_t source_node, uint32_t tar
         else{
             endCurrentNeighbors = 0;
             if(expandLevelPrunned(this->incomingIndex_,this->incomingBuffer_,&endQueue,
-                &endVisited,&startVisited,endCurrentNeighbors,this->grailIndexIncoming_,source_node)==true)
+                this->endVisitedKey,this->endVisited,this->startVisitedKey,this->startVisited,
+                endCurrentNeighbors,this->grailIndexIncoming_,source_node)==true)
                 return startCurrentLength+endCurrentLength;
             endCurrentLength++;
             if(endQueue.isEmpty())
@@ -416,11 +445,17 @@ uint32_t StaticGraph::grailConnect(Component* currentComponent, GrailIndex* grai
      uint32_t &index, bool* visited, char select){
     visited[currentComponent->component_id-1]=true;
 
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+
     uint32_t componentNeighborsNumber;
-    if(select=='o')
+    if(select=='o'){
         componentNeighborsNumber=currentComponent->neighborNumberOutgoing;
-    else
+        shuffle (&currentComponent->componentNeighborsOutgoing[0], &currentComponent->componentNeighborsOutgoing[componentNeighborsNumber], std::default_random_engine(seed));
+    }
+    else{
         componentNeighborsNumber=currentComponent->neighborNumberIncoming;
+        shuffle (&currentComponent->componentNeighborsIncoming[0], &currentComponent->componentNeighborsIncoming[componentNeighborsNumber], std::default_random_engine(seed));
+    }
 
     uint32_t childMinRank;
     uint32_t neighborComponentNode;
@@ -461,6 +496,7 @@ void StaticGraph::buildGrailIndex(){
             }
         }
         memset(visited,0,indexSize);
+        index=1;
     }
     memset(visited,0,indexSize);
 
@@ -475,6 +511,7 @@ void StaticGraph::buildGrailIndex(){
             }
         }
         memset(visited,0,indexSize);
+        index=1;
     }
     free(visited);
 }
@@ -508,15 +545,19 @@ long StaticGraph::staticQuery(uint32_t from, uint32_t to){
     GrailAnswer answer;
 
     answer=this->isReachableGrailIndex(from,to,this->grailIndexOutgoing_);
-    if(answer!=NO)
-        answer=this->isReachableGrailIndex(to,from,this->grailIndexIncoming_);
-
     if(answer==YES)
         return estimateShortestPathStronglyConnectedComponents(from,to);
-    else if(answer==MAYBE)
-        return estimateShortestPathPrunned(from,to);
-    else
+    else if(answer==NO)
         return -1;
+    else{
+        answer=this->isReachableGrailIndex(to,from,this->grailIndexIncoming_);
+        if(answer==YES)
+            return estimateShortestPathStronglyConnectedComponents(from,to);
+        else if(answer==NO)
+            return -1;
+        else
+            return estimateShortestPathPrunned(from,to);
+    }
 }
 
 StaticGraph::~StaticGraph(){
