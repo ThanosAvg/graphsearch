@@ -16,6 +16,9 @@ public:
     // Returns false if insertion fails, true otherwise
     bool add(uint32_t from, uint32_t to);
 
+    uint32_t getOutgoingIndexSize();
+    uint32_t getIncomingIndexSize();
+
     // Takes 2 node ids and calculates the cost of the path between them, or -1 if either no
     // path exists or invalid input is given
     long query(uint32_t from, uint32_t to);
@@ -59,6 +62,13 @@ public:
         uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors,GrailIndex* grail,uint32_t target_node);
     long estimateShortestPathStronglyConnectedComponents(uint32_t source_node, uint32_t target_node);
     long estimateShortestPathPrunned(uint32_t source_node, uint32_t target_node);
+
+    //Threads
+    long threadStaticQuery(uint32_t from, uint32_t to,uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited);
+    long threadEstimateShortestPathStronglyConnectedComponents(uint32_t source_node, uint32_t target_node,
+        uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited);
+    long threadEstimateShortestPathPrunned(uint32_t source_node, uint32_t target_node,
+            uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited);
 
     //GrailRelatedFunctions
     uint32_t grailConnect(Component* currentComponent, GrailIndex* grail, int label, uint32_t &index,

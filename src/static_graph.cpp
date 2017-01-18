@@ -565,3 +565,143 @@ StaticGraph::~StaticGraph(){
     delete this->grailIndexOutgoing_;
     delete this->grailIndexIncoming_;
 }
+
+long StaticGraph::threadStaticQuery(uint32_t from, uint32_t to,
+uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited){
+
+    if(from==to)
+        return 0;
+
+    if(this->outgoingIndex_->getListHead(from) == PTR_NULL ||
+       this->incomingIndex_->getListHead(to) == PTR_NULL){
+        return -1;
+    }
+
+    GrailAnswer answer;
+
+    answer=this->isReachableGrailIndex(from,to,this->grailIndexOutgoing_);
+    if(answer==YES)
+        return threadEstimateShortestPathStronglyConnectedComponents(from,to,startVisitedKey,startVisited,endVisitedKey,endVisited);
+    else if(answer==NO)
+        return -1;
+    else{
+        answer=this->isReachableGrailIndex(to,from,this->grailIndexIncoming_);
+        if(answer==YES)
+            return threadEstimateShortestPathStronglyConnectedComponents(from,to,startVisitedKey,startVisited,endVisitedKey,endVisited);
+        else if(answer==NO)
+            return -1;
+        else
+            return threadEstimateShortestPathPrunned(from,to,startVisitedKey,startVisited,endVisitedKey,endVisited);
+    }
+}
+
+
+long StaticGraph::threadEstimateShortestPathStronglyConnectedComponents(uint32_t source_node, uint32_t target_node,
+    uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited){
+    /* Finds and returns the path distance from the source node to the target node.
+    Returns -1 if a paths does not exist. */
+
+    uint32_t componentId=this->scc_->findNodeStronglyConnectedComponentID(source_node);
+
+    //Create two queues for each side for bi-bfs
+    Queue startQueue, endQueue;
+
+    //Push into the queues,the initial nodes for each side(level 0)
+    startQueue.enqueue(source_node);
+    endQueue.enqueue(target_node);
+    startQueue.enqueue(LEVEL_END);
+    endQueue.enqueue(LEVEL_END);
+
+    //Current length measures the depth of search(levels) in each side
+    long startCurrentLength,endCurrentLength;
+    uint32_t startCurrentNeighbors=0;
+    uint32_t endCurrentNeighbors=0;
+    startCurrentLength = 0;
+    endCurrentLength = 0;
+
+    while(true){
+        // Run bidirectional bfs for source and target node
+
+        //Choose only the side with less neighbors in its queue
+        if(startCurrentNeighbors <= endCurrentNeighbors){
+            startCurrentNeighbors = 0;
+            //Expand the nodes currently in queue(one level),and add the next level nodes
+            if(expandLevelinComponent(this->outgoingIndex_,this->outgoingBuffer_,&startQueue,
+                startVisitedKey,startVisited,endVisitedKey,endVisited,
+                startCurrentNeighbors,componentId)==true)
+                return startCurrentLength+endCurrentLength;
+            startCurrentLength++;
+            if(startQueue.isEmpty())
+                return -1;
+            startQueue.enqueue(LEVEL_END);
+        }
+        else{
+            endCurrentNeighbors = 0;
+            if(expandLevelinComponent(this->incomingIndex_,this->incomingBuffer_,&endQueue,
+                endVisitedKey,endVisited,startVisitedKey,startVisited,
+                endCurrentNeighbors,componentId)==true)
+                return startCurrentLength+endCurrentLength;
+            endCurrentLength++;
+            if(endQueue.isEmpty())
+                return -1;
+            endQueue.enqueue(LEVEL_END);
+        }
+
+    }
+
+    return -1;
+}
+
+long StaticGraph::threadEstimateShortestPathPrunned(uint32_t source_node, uint32_t target_node,
+    uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited){
+    /* Finds and returns the path distance from the source node to the target node.
+    Returns -1 if a paths does not exist. */
+
+    //Create two queues for each side for bi-bfs
+    Queue startQueue, endQueue;
+
+    //Push into the queues,the initial nodes for each side(level 0)
+    startQueue.enqueue(source_node);
+    endQueue.enqueue(target_node);
+    startQueue.enqueue(LEVEL_END);
+    endQueue.enqueue(LEVEL_END);
+
+    //Current length measures the depth of search(levels) in each side
+    long startCurrentLength,endCurrentLength;
+    uint32_t startCurrentNeighbors=0;
+    uint32_t endCurrentNeighbors=0;
+    startCurrentLength = 0;
+    endCurrentLength = 0;
+
+    while(true){
+        // Run bidirectional bfs for source and target node
+
+        //Choose only the side with less neighbors in its queue
+        if(startCurrentNeighbors <= endCurrentNeighbors){
+            startCurrentNeighbors = 0;
+            //Expand the nodes currently in queue(one level),and add the next level nodes
+            if(expandLevelPrunned(this->outgoingIndex_,this->outgoingBuffer_,&startQueue,
+                startVisitedKey,startVisited,endVisitedKey,endVisited,
+                startCurrentNeighbors,this->grailIndexOutgoing_,target_node)==true)
+                return startCurrentLength+endCurrentLength;
+            startCurrentLength++;
+            if(startQueue.isEmpty())
+                return -1;
+            startQueue.enqueue(LEVEL_END);
+        }
+        else{
+            endCurrentNeighbors = 0;
+            if(expandLevelPrunned(this->incomingIndex_,this->incomingBuffer_,&endQueue,
+                endVisitedKey,endVisited,startVisitedKey,startVisited,
+                endCurrentNeighbors,this->grailIndexIncoming_,source_node)==true)
+                return startCurrentLength+endCurrentLength;
+            endCurrentLength++;
+            if(endQueue.isEmpty())
+                return -1;
+            endQueue.enqueue(LEVEL_END);
+        }
+
+    }
+
+    return -1;
+}

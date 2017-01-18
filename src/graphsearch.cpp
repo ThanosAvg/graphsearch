@@ -15,7 +15,7 @@ int main(){
     graph.estimateComponentsNeighbors('i');
     graph.estimateComponentsNeighbors('o');
     graph.buildGrailIndex();
-    
+
     QueryArray qarr(5000, 5000);
     int line = 0;
     int myChar;
@@ -25,8 +25,8 @@ int main(){
     while(1){
         //std::cin.get(myChar);
         myChar = getc(stdin);
-        if(myChar == 'S'){
-            break;            
+        if(myChar == 'S' || myChar == EOF){
+            break;
         }
         else{
             //std::cin.putback(myChar);
@@ -36,7 +36,7 @@ int main(){
             graph.add(from, to);
         }
     }
-    
+
     while(1){
         myChar = getc(stdin);
         if(myChar == 'F'){

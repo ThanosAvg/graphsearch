@@ -1,5 +1,8 @@
 #include "job_scheduler.h"
 #include "types.h"
+#include <iostream>
+
+using namespace std;
 
 JobScheduler::JobScheduler(QueryArray* queryArray,StaticGraph* graph){
     this->queryArray_=queryArray;
@@ -37,6 +40,14 @@ void JobScheduler::threadJobExecution(){
     struct Job* job;
     QueryData* queryDataPtr;
     long result;
+
+    uint32_t startVisitedSize=this->graph_->getOutgoingIndexSize();
+    uint32_t endVisitedSize=this->graph_->getIncomingIndexSize();
+    uint32_t* startVisited=(uint32_t*)calloc(startVisitedSize,sizeof(uint32_t));
+    uint32_t* endVisited=(uint32_t*)calloc(endVisitedSize,sizeof(uint32_t));
+    uint32_t startVisitedKey=0;
+    uint32_t endVisitedKey=0;
+
     while(1){
         //Get my next job from the job array
         job=this->getJob();
@@ -47,7 +58,19 @@ void JobScheduler::threadJobExecution(){
         //Iterate over all queries of the Job
         for(uint32_t i=job->from;i<=job->to;i++){
             queryDataPtr=this->queryArray_->getQuery(i);
-            result=this->graph_->staticQuery(queryDataPtr->queryFrom,queryDataPtr->queryTo);
+
+            if(startVisitedKey==UINT_MAX){
+                memset(startVisited,0,startVisitedSize);
+                startVisitedKey=0;
+            }
+            if(endVisitedKey==UINT_MAX){
+                memset(endVisited,0,endVisitedSize);
+                endVisitedKey=0;
+            }
+            startVisitedKey++;
+            endVisitedKey++;
+            result=this->graph_->threadStaticQuery(queryDataPtr->queryFrom,
+                queryDataPtr->queryTo,startVisitedKey,startVisited,endVisitedKey,endVisited);
             //Write result to the result Array
             this->queryArray_->setResult(i,result);
         }

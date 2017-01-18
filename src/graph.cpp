@@ -273,6 +273,14 @@ long Graph::query(uint32_t from, uint32_t to){
     return -1;
 }
 
+uint32_t Graph::getOutgoingIndexSize(){
+    return this->outgoingIndex_->getCurrentSize();
+}
+
+uint32_t Graph::getIncomingIndexSize(){
+    return this->incomingIndex_->getCurrentSize();
+}
+
 Graph::~Graph(){
     delete incomingBuffer_;
     delete outgoingBuffer_;

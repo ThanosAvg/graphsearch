@@ -20,7 +20,7 @@ public:
     uint32_t setMinRank(int,uint32_t, uint32_t);
     uint32_t setRank(int,uint32_t, uint32_t);
     bool isSubset(uint32_t, uint32_t);
-    static const uint32_t labels = 1;
+    static const uint32_t labels = 4;
 
 private:
     grailNode** index_;
