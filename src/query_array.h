@@ -8,6 +8,7 @@ struct QueryData{
     uint32_t queryTo;
     uint32_t queryId;
     uint32_t version;
+    long result;
 };
 
 
@@ -22,6 +23,10 @@ public:
     bool addBurst(uint32_t line);
     uint32_t getBurst(uint32_t index);
     uint32_t getCurrentBurstSize();
+
+    void setResult(uint32_t index, long result);
+    void printResult(uint32_t index);
+    long getResult(uint32_t index);
 private:
     QueryData* dataArray_;
     uint32_t maxDataSize_;

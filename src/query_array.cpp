@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 
@@ -73,4 +74,14 @@ uint32_t QueryArray::getCurrentBurstSize(){
     return currentBurstSize_;
 }
 
+void QueryArray::setResult(uint32_t index, long result){
+    dataArray_[index].result = result;
+}
 
+void QueryArray::printResult(uint32_t index){
+    std::cout << dataArray_[index].result << std::endl;
+}
+
+long QueryArray::getResult(uint32_t index){
+    return dataArray_[index].result;
+}
