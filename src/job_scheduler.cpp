@@ -1,5 +1,5 @@
 #include "job_scheduler.h"
-#include <iostream>
+#include "types.h"
 
 JobScheduler::JobScheduler(QueryArray* queryArray,StaticGraph* graph){
     this->queryArray_=queryArray;
@@ -13,20 +13,25 @@ JobScheduler::JobScheduler(QueryArray* queryArray,StaticGraph* graph){
 void JobScheduler::parallelQueryExecution(){
 
     pthread_mutex_init(&this->job_mutex_,NULL);
-    for(int i=0;i<this->threadNumber_;i++){
-        if(pthread_create(&(this->thread_pool[i]), NULL, this->threadJobExecution, NULL)) {
+    for(int i=0;i<this->threadPoolSize_;i++){
+        if(pthread_create(&(this->threadPool_[i]), NULL, JobScheduler::staticFunctionPointer, this)) {
             return;
         }
     }
-    for(int i=0;i<this->threadNumber_;i++)
-       pthread_join(this->thread_pool[i], NULL);
+    for(int i=0;i<this->threadPoolSize_;i++)
+       pthread_join(this->threadPool_[i], NULL);
 
     uint32_t queryNumber=this->queryArray_->getCurrentQueryDataSize();
     for(int i=0;i<queryNumber;i++)
         this->queryArray_->printResult(i);
 }
 
-void* JobScheduler::threadJobExecution(){
+void * JobScheduler::staticFunctionPointer(void* argp){
+    ((JobScheduler *) argp)->threadJobExecution();
+    return NULL;
+}
+
+void JobScheduler::threadJobExecution(){
     //Basic routine for the execution of queries in threads
 
     struct Job* job;
@@ -35,7 +40,7 @@ void* JobScheduler::threadJobExecution(){
     while(1){
         //Get my next job from the job array
         job=this->getJob();
-        if(job->to==JOB_END){
+        if(job->to == JOB_END){
             delete job;
             break;
         }
@@ -57,7 +62,7 @@ Job* JobScheduler::getJob(){
     pthread_mutex_lock(&job_mutex_);
     newJob->from=this->nextJobStart_;
     newJob->to=this->nextJobEnd_;
-    if(this->nextJobEnd_!=JOB_END){
+    if(this->nextJobEnd_ != JOB_END){
         if(this->nextJob_==this->jobNumber_){
             this->nextJobStart_=JOB_END;
             this->nextJobEnd_=JOB_END;

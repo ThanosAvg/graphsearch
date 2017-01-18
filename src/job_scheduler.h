@@ -4,9 +4,8 @@
 #include "query_array.h"
 #include "job.h"
 #include "graph.h"
+#include "types.h"
 #include <pthread.h>
-
-#define JOB_END UINT_MAX-2
 
 class JobScheduler{
 public:
@@ -14,11 +13,12 @@ public:
     ~JobScheduler();
 
     void parallelQueryExecution();
-    void* threadJobExecution();
+    static void* staticFunctionPointer(void * argp);
+    void threadJobExecution();
     Job* getJob();
 private:
     static const int threadPoolSize_ = 4;
-    pthread_t thread_pool_[threadPoolSize];
+    pthread_t threadPool_[threadPoolSize_];
     QueryArray* queryArray_;
     StaticGraph* graph_;
     pthread_mutex_t job_mutex_;
