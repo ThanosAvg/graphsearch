@@ -11,6 +11,11 @@
 int main(){
 #ifdef STATIC
     StaticGraph graph;
+    graph.estimateStronglyConnectedComponents();
+    graph.estimateComponentsNeighbors('i');
+    graph.estimateComponentsNeighbors('o');
+    graph.buildGrailIndex();
+    
     QueryArray qarr(5000, 5000);
     int line = 0;
     int myChar;
