@@ -4,7 +4,7 @@
 
 using namespace std;
 
-JobScheduler::JobScheduler(QueryArray* queryArray,StaticGraph* graph){
+JobScheduler::JobScheduler(QueryArray* queryArray,Graph* graph){
     this->queryArray_=queryArray;
     this->nextJobStart_=0;
     this->nextJobEnd_=queryArray->getBurst(0);
@@ -69,7 +69,7 @@ void JobScheduler::threadJobExecution(){
             }
             startVisitedKey++;
             endVisitedKey++;
-            result=this->graph_->threadStaticQuery(queryDataPtr->queryFrom,
+            result=this->graph_->threadSafeQuery(queryDataPtr->queryFrom,
                 queryDataPtr->queryTo,startVisitedKey,startVisited,endVisitedKey,endVisited);
             //Write result to the result Array
             this->queryArray_->setResult(i,result);

@@ -9,7 +9,7 @@
 
 class JobScheduler{
 public:
-    JobScheduler(QueryArray* queryArray, StaticGraph* graph);
+    JobScheduler(QueryArray* queryArray, Graph* graph);
     ~JobScheduler();
 
     void parallelQueryExecution();
@@ -20,7 +20,7 @@ private:
     static const int threadPoolSize_ = 4;
     pthread_t threadPool_[threadPoolSize_];
     QueryArray* queryArray_;
-    StaticGraph* graph_;
+    Graph* graph_;
     pthread_mutex_t job_mutex_;
     uint32_t nextJobStart_;
     uint32_t nextJobEnd_;

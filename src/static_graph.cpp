@@ -566,7 +566,7 @@ StaticGraph::~StaticGraph(){
     delete this->grailIndexIncoming_;
 }
 
-long StaticGraph::threadStaticQuery(uint32_t from, uint32_t to,
+long StaticGraph::threadSafeQuery(uint32_t from, uint32_t to,
 uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited){
 
     if(from==to)

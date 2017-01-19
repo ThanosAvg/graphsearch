@@ -21,7 +21,10 @@ public:
 
     // Takes 2 node ids and calculates the cost of the path between them, or -1 if either no
     // path exists or invalid input is given
-    long query(uint32_t from, uint32_t to);
+    virtual long query(uint32_t from, uint32_t to);
+
+    virtual long threadSafeQuery(uint32_t from, uint32_t to,uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited) = 0;
+    
     bool expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
         uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors);
 protected:
@@ -64,7 +67,7 @@ public:
     long estimateShortestPathPrunned(uint32_t source_node, uint32_t target_node);
 
     //Threads
-    long threadStaticQuery(uint32_t from, uint32_t to,uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited);
+    long threadSafeQuery(uint32_t from, uint32_t to,uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited);
     long threadEstimateShortestPathStronglyConnectedComponents(uint32_t source_node, uint32_t target_node,
         uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited);
     long threadEstimateShortestPathPrunned(uint32_t source_node, uint32_t target_node,
