@@ -6,12 +6,23 @@ ListNode::ListNode(){
     this->neighborCount_ = 0;
 }
 
-bool ListNode::addNeighbor(uint32_t id){
+// bool ListNode::addNeighbor(uint32_t id){
+//     if(this->neighborCount_ >= this->neighborMax_){
+//         // We cannot add anymore
+//         return false;
+//     }
+//     this->neighbors_[this->neighborCount_] = id;
+//     this->neighborCount_++;
+//     return true;
+// }
+
+bool ListNode::addNeighborWithProperty(uint32_t id, uint32_t property){
     if(this->neighborCount_ >= this->neighborMax_){
         // We cannot add anymore
         return false;
     }
     this->neighbors_[this->neighborCount_] = id;
+    this->edgeProperty_[this->neighborCount_] = property;
     this->neighborCount_++;
     return true;
 }
@@ -23,6 +34,10 @@ bool ListNode::addEdgeProperty(uint32_t x){
 
 uint32_t* ListNode::getNeighborsPtr(){
     return neighbors_;
+}
+
+uint32_t* ListNode::getPropertiesPtr(){
+    return edgeProperty_;
 }
 
 uint32_t ListNode::getNeighborCount(){

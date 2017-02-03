@@ -27,30 +27,59 @@ bool Graph::add(uint32_t from, uint32_t to){
         suc1 = this->addToPairWithDupCheck(this->incomingIndex_,
                                            this->incomingBuffer_,
                                            to,
-                                           from);
+                                           from, 0);
         if(suc1){
             suc2 = this->addToPair(this->outgoingIndex_,
                                 this->outgoingBuffer_,
                                 from,
-                                to);
+                                   to, 0);
         }
     }
     else{
         suc1 = this->addToPairWithDupCheck(this->outgoingIndex_,
                                            this->outgoingBuffer_,
                                            from,
-                                           to);
+                                           to, 0);
         if(suc1){
             suc2 = this->addToPair(this->incomingIndex_,
                                    this->incomingBuffer_,
                                    to,
-                                   from);
+                                   from, 0);
         }
     }
     return suc1 && suc2;
 }
 
-bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node){
+bool Graph::addWithVersion(uint32_t from, uint32_t to, uint32_t version){
+    bool suc1, suc2;
+    if(this->incomingIndex_->getNeighborCount(to) < this->outgoingIndex_->getNeighborCount(from)){
+        suc1 = this->addToPairWithDupCheck(this->incomingIndex_,
+                                           this->incomingBuffer_,
+                                           to,
+                                           from, version);
+        if(suc1){
+            suc2 = this->addToPair(this->outgoingIndex_,
+                                this->outgoingBuffer_,
+                                from,
+                                   to, version);
+        }
+    }
+    else{
+        suc1 = this->addToPairWithDupCheck(this->outgoingIndex_,
+                                           this->outgoingBuffer_,
+                                           from,
+                                           to, version);
+        if(suc1){
+            suc2 = this->addToPair(this->incomingIndex_,
+                                   this->incomingBuffer_,
+                                   to,
+                                   from, version);
+        }
+    }
+    return suc1 && suc2;
+}
+
+bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node, uint32_t version){
     ptr lNodePtr = index->getListTail(target);
     if(lNodePtr == PTR_NULL){
         // Node does not exist
@@ -62,7 +91,7 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
     ListNode *listNode = buffer->getListNode(lNodePtr);
     // Add if we have space, else create a new list node
     if(listNode->getNeighborCount() < listNode->getNeighborMax()){
-        listNode->addNeighbor(node);
+        listNode->addNeighborWithProperty(node, version);
     }
     else{
         ptr newAddr;
@@ -71,7 +100,7 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
 
         listNode->setNextListNode(newAddr);
         listNode = buffer->getListNode(newAddr);
-        listNode->addNeighbor(node);
+        listNode->addNeighborWithProperty(node, version);
         index->setListTail(target, newAddr);
     }
     index->incrementNeighbors(target);
@@ -79,7 +108,7 @@ bool Graph::addToPair(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_
 }
 
 
-bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node){
+bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t target, uint32_t node, uint32_t version){
     // Check if node exists
     ptr lNodePtr;
     lNodePtr = index->getListHead(target);
@@ -130,7 +159,7 @@ bool Graph::addToPairWithDupCheck(NodeIndex* index, Buffer* buffer, uint32_t tar
             return false;
         }
     }
-    listNode->addNeighbor(node);
+    listNode->addNeighborWithProperty(node, version);
     index->incrementNeighbors(target);
     return true;
 }
@@ -186,6 +215,7 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t
     return false;
 }
 
+/*
 long Graph::query(uint32_t from, uint32_t to){
     // Finds and returns the path distance from the source node to the target node.
     // Returns -1 if a paths does not exist.
@@ -272,6 +302,7 @@ long Graph::query(uint32_t from, uint32_t to){
 
     return -1;
 }
+*/
 
 uint32_t Graph::getOutgoingIndexSize(){
     return this->outgoingIndex_->getCurrentSize();
@@ -291,3 +322,4 @@ Graph::~Graph(){
     if(endVisited!=NULL)
         free(endVisited);
 }
+

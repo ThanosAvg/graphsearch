@@ -70,7 +70,7 @@ void JobScheduler::threadJobExecution(){
             startVisitedKey++;
             endVisitedKey++;
             result=this->graph_->threadSafeQuery(queryDataPtr->queryFrom,
-                queryDataPtr->queryTo,startVisitedKey,startVisited,endVisitedKey,endVisited);
+                                                 queryDataPtr->queryTo,startVisitedKey,startVisited,endVisitedKey,endVisited,queryDataPtr->version);
             //Write result to the result Array
             this->queryArray_->setResult(i,result);
         }

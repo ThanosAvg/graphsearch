@@ -567,7 +567,7 @@ StaticGraph::~StaticGraph(){
 }
 
 long StaticGraph::threadSafeQuery(uint32_t from, uint32_t to,
-uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited){
+                                  uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version){
 
     if(from==to)
         return 0;
@@ -705,3 +705,4 @@ long StaticGraph::threadEstimateShortestPathPrunned(uint32_t source_node, uint32
 
     return -1;
 }
+

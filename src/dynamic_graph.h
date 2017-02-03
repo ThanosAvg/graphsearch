@@ -52,7 +52,7 @@ public:
     bool postAdd(uint32_t from, uint32_t to);
     void estimateConnectedComponents();
     CC* getCC();
-    long query(uint32_t from, uint32_t to);
+    long threadSafeQuery(uint32_t from, uint32_t to, uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version);
 private:
     CC* connectedComponents_;
     Hash<uint32_t> visited_;

@@ -298,6 +298,7 @@ CC* DynamicGraph::getCC(){
     return this->connectedComponents_;
 }
 
+/*
 long DynamicGraph::query(uint32_t from, uint32_t to){
     int32_t comp1, comp2;
     comp1 = this->connectedComponents_->findNodeConnectedComponentID(from);
@@ -307,6 +308,95 @@ long DynamicGraph::query(uint32_t from, uint32_t to){
         return Graph::query(from, to);
     }
     // If they dont belong in the same CC, we know no connection exists
+    return -1;
+    }*/
+
+long DynamicGraph::threadSafeQuery(uint32_t from, uint32_t to, uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version){
+    // Finds and returns the path distance from the source node to the target node.
+    // Returns -1 if a paths does not exist.
+
+    if(from==to)
+        return 0;
+
+    // Validate nodes
+    if(outgoingIndex_->getListHead(from) == PTR_NULL ||
+       incomingIndex_->getListHead(to) == PTR_NULL){
+        return -1;
+    }
+
+    /*
+    //Create visited arrays if not created
+    if(startVisited==NULL){
+        startVisitedSize=outgoingIndex_->getCurrentSize();
+        startVisited=(uint32_t*)calloc(startVisitedSize,sizeof(uint32_t));
+    }
+    //else if(startVisitedSize<outgoingIndex_->getCurrentSize())
+        //cout << "startVistedSize Increased" << endl;
+    if(endVisited==NULL){
+        endVisitedSize=incomingIndex_->getCurrentSize();
+        endVisited=(uint32_t*)calloc(endVisitedSize,sizeof(uint32_t));
+    }
+    */
+    //else if(endVisitedSize<incomingIndex_->getCurrentSize())
+        //cout << "endVistedSize Increased" << endl;
+
+    //Check if maximum key has been reached and reset the visited arrays
+    if(startVisitedKey==UINT_MAX){
+        memset(startVisited,0,outgoingIndex_->getCurrentSize());
+        startVisitedKey=0;
+    }
+    if(endVisitedKey==UINT_MAX){
+        memset(endVisited,0,incomingIndex_->getCurrentSize());
+        endVisitedKey=0;
+    }
+    //Increase the visited key of the current search
+    startVisitedKey++;
+    endVisitedKey++;
+
+    //Create two queues for each side for bi-bfs
+    Queue startQueue, endQueue;
+
+    //Push into the queues,the initial nodes for each side(level 0)
+    startQueue.enqueue(from);
+    endQueue.enqueue(to);
+    startQueue.enqueue(LEVEL_END);
+    endQueue.enqueue(LEVEL_END);
+
+    //Current length measures the depth of search(levels) in each side
+    long startCurrentLength,endCurrentLength;
+    uint32_t startCurrentNeighbors=0;
+    uint32_t endCurrentNeighbors=0;
+    startCurrentLength = 0;
+    endCurrentLength = 0;
+
+    while(true){
+        // Run bidirectional bfs for source and target node
+
+        //Choose only the side with less neighbors in its queue
+        if(startCurrentNeighbors <= endCurrentNeighbors){
+            startCurrentNeighbors = 0;
+            //Expand the nodes currently in queue(one level),and add the next level nodes
+            if(expandLevel(outgoingIndex_,outgoingBuffer_,&startQueue,startVisitedKey,
+                startVisited,endVisitedKey,endVisited,startCurrentNeighbors)==true)
+                return startCurrentLength+endCurrentLength;
+            startCurrentLength++;
+            if(startQueue.isEmpty())
+                return -1;
+            startQueue.enqueue(LEVEL_END);
+        }
+        else{
+            endCurrentNeighbors = 0;
+            if(expandLevel(incomingIndex_,incomingBuffer_,&endQueue,endVisitedKey,
+                endVisited,startVisitedKey,startVisited,endCurrentNeighbors)==true)
+                return startCurrentLength+endCurrentLength;
+            endCurrentLength++;
+            if(endQueue.isEmpty())
+                return -1;
+            endQueue.enqueue(LEVEL_END);
+        }
+
+    }
+
     return -1;
 }
 
