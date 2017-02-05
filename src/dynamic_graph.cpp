@@ -311,6 +311,66 @@ long DynamicGraph::query(uint32_t from, uint32_t to){
     return -1;
     }*/
 
+bool DynamicGraph::expandLevelWithVersion(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
+                                          uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors, uint32_t version){
+    // Expands the current nodes in the queue(one level).
+    // Returns true if the desired path is found,false if not.
+
+    ResultCode resCode;
+    ptr currentNodePtr;
+    ListNode* currentListNode;
+    uint32_t* nodeNeighbors;
+    uint32_t nodeNeighborsNumber;
+    uint32_t* nodeProperties;
+
+    uint32_t currentNode = queue->dequeue();
+
+    while(currentNode != LEVEL_END){
+        //If current Node is already visited skip
+        if(myVisited[currentNode]!=myVisitedKey){
+            //If it's not visited mark it as visited
+            myVisited[currentNode]=myVisitedKey;
+            currentNodePtr = index->getListHead(currentNode);
+            if(currentNodePtr == PTR_NULL){
+                continue;
+            }
+            currentListNode = buffer->getListNode(currentNodePtr);
+            currentNeighbors += index->getNeighborCount(currentNode);
+
+            //Push node's neighbors that are not in closed set
+            while(true){
+                nodeNeighbors = currentListNode->getNeighborsPtr();
+                nodeProperties = currentListNode->getPropertiesPtr();
+                //For every neighbors inside the current list node
+                nodeNeighborsNumber = currentListNode->getNeighborCount();
+                for(uint32_t i = 0; i < nodeNeighborsNumber; i++){
+
+                    // If our version is less than the egde's version
+                    // ignore the edge
+                    if(version < nodeProperties[i]){
+                        //std::cout << "Versions: " << version << " " << nodeProperties[i] << std::endl;
+                        continue;
+                    }
+                    //If current neighbor has been found on the other side:return
+                    if(targetVisited[nodeNeighbors[i]]==targetVisitedKey){
+                        return true;
+                    }
+                    queue->enqueue(nodeNeighbors[i]);
+                }
+                //Get the next list node pointer from the current one
+                currentNodePtr = currentListNode->getNextListNode();
+                if(currentNodePtr == PTR_NULL)
+                    break;
+                else
+                    currentListNode = buffer->getListNode(currentNodePtr);
+            }
+        }
+        currentNode = queue->dequeue();
+    }
+    //Target node not found
+    return false;
+}
+
 long DynamicGraph::threadSafeQuery(uint32_t from, uint32_t to, uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version){
     // Finds and returns the path distance from the source node to the target node.
     // Returns -1 if a paths does not exist.
@@ -376,8 +436,8 @@ long DynamicGraph::threadSafeQuery(uint32_t from, uint32_t to, uint32_t startVis
         if(startCurrentNeighbors <= endCurrentNeighbors){
             startCurrentNeighbors = 0;
             //Expand the nodes currently in queue(one level),and add the next level nodes
-            if(expandLevel(outgoingIndex_,outgoingBuffer_,&startQueue,startVisitedKey,
-                startVisited,endVisitedKey,endVisited,startCurrentNeighbors)==true)
+            if(expandLevelWithVersion(outgoingIndex_,outgoingBuffer_,&startQueue,startVisitedKey,
+                           startVisited,endVisitedKey,endVisited,startCurrentNeighbors, version)==true)
                 return startCurrentLength+endCurrentLength;
             startCurrentLength++;
             if(startQueue.isEmpty())
@@ -386,8 +446,8 @@ long DynamicGraph::threadSafeQuery(uint32_t from, uint32_t to, uint32_t startVis
         }
         else{
             endCurrentNeighbors = 0;
-            if(expandLevel(incomingIndex_,incomingBuffer_,&endQueue,endVisitedKey,
-                endVisited,startVisitedKey,startVisited,endCurrentNeighbors)==true)
+            if(expandLevelWithVersion(incomingIndex_,incomingBuffer_,&endQueue,endVisitedKey,
+                           endVisited,startVisitedKey,startVisited,endCurrentNeighbors, version)==true)
                 return startCurrentLength+endCurrentLength;
             endCurrentLength++;
             if(endQueue.isEmpty())

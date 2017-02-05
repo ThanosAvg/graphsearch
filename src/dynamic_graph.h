@@ -53,6 +53,7 @@ public:
     void estimateConnectedComponents();
     CC* getCC();
     long threadSafeQuery(uint32_t from, uint32_t to, uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version);
+    bool expandLevelWithVersion(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey, uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors, uint32_t version);
 private:
     CC* connectedComponents_;
     Hash<uint32_t> visited_;
