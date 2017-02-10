@@ -94,13 +94,12 @@ int main(){
             ungetc(myChar, stdin);
             scanret = scanf("%u %u\n", &from, &to);
             //std::cout << "Adding " << from << " " << to << std::endl;
-            graph.addWithVersion(from, to, 0);
+            graph.postAddWithVersion(from, to, 0);
         }
     }
 
     uint32_t currentVersion = 0;
     int prevChar = 'Q';
-
     while(1){
         myChar = getc(stdin);
         if(myChar == 'F'){
@@ -121,14 +120,14 @@ int main(){
             if(prevChar == 'Q'){
                 currentVersion++;
             }
-            graph.addWithVersion(from, to, currentVersion);
+            graph.postAddWithVersion(from, to, currentVersion);
         }
         line++;
         prevChar = myChar;
         //putchar(myChar);
         //std::cout << " " << from << " " << to << " VERSION:" << currentVersion << std::endl;
     }
-
+    //graph.estimateConnectedComponents();
     JobScheduler *scheduler = new JobScheduler(&qarr, &graph);
     scheduler->parallelQueryExecution();
 #endif

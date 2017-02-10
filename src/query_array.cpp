@@ -80,6 +80,9 @@ void QueryArray::setResult(uint32_t index, long result){
 
 void QueryArray::printResult(uint32_t index){
     std::cout << dataArray_[index].result << std::endl;
+    //std::cout << dataArray_[index].queryFrom << " " <<
+    //dataArray_[index].queryTo << " " <<
+    //dataArray_[index].result << std::endl;
 }
 
 long QueryArray::getResult(uint32_t index){

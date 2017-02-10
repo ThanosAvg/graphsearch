@@ -12,6 +12,7 @@ CC::CC(){
     memset(ccindex_, -1, ccLimit_ * sizeof(int32_t));
     ccSize_ = 0;
     ccMax_ = ccLimit_;
+    initUpdateIndex(1000000);
 }
 
 CC::~CC(){
@@ -33,7 +34,7 @@ void CC::addNodeToComponent(uint32_t nodeId, int32_t ccId){
         memset(resized + ccMax_, -1, (newSize - ccMax_) * sizeof(int32_t));
         ccMax_ = newSize;
         ccindex_ = resized;
-        
+
     }
     ccindex_[nodeId] = ccId;
     ccSize_++;
@@ -41,7 +42,7 @@ void CC::addNodeToComponent(uint32_t nodeId, int32_t ccId){
 
 void CC::postAddNodeToComponent(uint32_t nodeId, int32_t ccId){
     addNodeToComponent(nodeId, ccId);
-    
+
     if(ccId > (int32_t) this->updateIndexSize_){
         std::cout << "Realloc update" << std::endl;
         int32_t *resized;
@@ -70,7 +71,7 @@ void CC::joinComponents(int32_t comp1, int32_t comp2){
 
     bool duplicateComp1 = false;
     bool duplicateComp2 = false;
-    
+
     updateIndex_[comp2] = commonCC;
     if(toBeMerged != -1){
         for(uint32_t i = 0; i < mergedSize_; i++){
@@ -114,7 +115,7 @@ int32_t CC::findNodeConnectedComponentID(uint32_t nodeId){
 
 bool CC::areConnected(int32_t comp1, int32_t comp2){
     if(comp1 == comp2) {
-        return true;   
+        return true;
     }
     else if(comp1 == -1 || comp2 == -1){
         return false;
@@ -251,12 +252,34 @@ void DynamicGraph::estimateConnectedComponents(){
             }
         }
     }
+
     this->connectedComponents_->lastComponent = currentComponent;
-    this->connectedComponents_->initUpdateIndex(currentComponent);
+    //this->connectedComponents_->initUpdateIndex(currentComponent);
 }
 
-bool DynamicGraph::postAdd(uint32_t from, uint32_t to){
-    bool added = this->add(from, to);
+/*
+void DynamicGraph::estimateConnectedComponents(){
+    uint32_t startVisitedSize=this->graph_->getOutgoingIndexSize();
+    uint32_t endVisitedSize=this->graph_->getIncomingIndexSize();
+    uint32_t* startVisited=(uint32_t*)calloc(startVisitedSize,sizeof(uint32_t));
+    uint32_t* endVisited=(uint32_t*)calloc(endVisitedSize,sizeof(uint32_t));
+    uint32_t startVisitedKey=0;
+    uint32_t endVisitedKey=0;
+
+    Queue fringe;
+    NodeIndex *incoming = this->incomingIndex_;
+    NodeIndex *outgoing = this->outgoingIndex_;
+    Buffer *inBuffer = this->incomingBuffer_;
+    Buffer *outBuffer = this->outgoingBuffer_;
+
+    while(true){
+
+    }
+}
+*/
+
+bool DynamicGraph::postAddWithVersion(uint32_t from, uint32_t to, uint32_t version){
+    bool added = this->addWithVersion(from, to, version);
     if(added){
         int32_t cfrom, cto;
         cfrom = this->connectedComponents_->findNodeConnectedComponentID(from);
@@ -374,7 +397,19 @@ bool DynamicGraph::expandLevelWithVersion(NodeIndex* index, Buffer* buffer, Queu
 long DynamicGraph::threadSafeQuery(uint32_t from, uint32_t to, uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version){
     // Finds and returns the path distance from the source node to the target node.
     // Returns -1 if a paths does not exist.
-
+    int32_t ccfrom, ccto;
+    ccfrom = this->connectedComponents_->findNodeConnectedComponentID(from);
+    ccto = this->connectedComponents_->findNodeConnectedComponentID(to);
+    if(!this->connectedComponents_->areConnected(ccfrom, ccto)){
+        return -1; // There is no way a path can exist between these
+    }
+    //if(from == 179098){
+    //    std::cout << ccfrom << "-" << ccto << std::endl;
+    //    std::cout << "==" << this->connectedComponents_->findNodeConnectedComponentID(1020) << "\n";
+    //    std::cout << this->connectedComponents_->findNodeConnectedComponentID(1359969);
+    //    std::cout << "----" << this->connectedComponents_->findNodeConnectedComponentID(1359970) << "\n";
+    //}
+    //std::cout << "Querying" << std::endl;
     if(from==to)
         return 0;
 
