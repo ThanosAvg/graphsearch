@@ -21,73 +21,103 @@ StaticGraph::StaticGraph():Graph(){
     this->grailIndexIncoming_=NULL;
 }
 
-uint32_t StaticGraph::strongConnect(uint32_t node, uint32_t &index, Stack* stack, bool* onStack){
+void StaticGraph::strongConnect(uint32_t node, uint32_t &index, Stack* stack, bool* onStack){
 
     this->scc_->setStronglyConnectedComponentID(node,index);
-    uint32_t vIndex=index;
-    uint32_t vLowlink=index;
-    uint32_t wLowLink;
-    uint32_t wIndex;
+    SccNode* v=new SccNode;
+    v->node=node;
+    v->index=index;
+    v->lowlink=index;
     index++;
     stack->push(node);
     onStack[node]=true;
+    v->currentNodePtr=this->outgoingIndex_->getListHead(node);
+    if(v->currentNodePtr != PTR_NULL){
+        v->currentListNode=this->outgoingBuffer_->getListNode(v->currentNodePtr);
+        v->nodeNeighbors=v->currentListNode->getNeighborsPtr();
+        v->neighborNumber=v->currentListNode->getNeighborCount();
+        v->nextNeighbor=0;
+    }
+    v->previous=NULL;
+    uint32_t wIndex;
 
-    ptr currentNodePtr=this->outgoingIndex_->getListHead(node);
-    //If current Node has neighbors
-    if(currentNodePtr != PTR_NULL){
+    while(true){
+        //If current Node has neighbors
+        if(v->currentNodePtr != PTR_NULL){
 
-        ListNode* currentListNode=this->outgoingBuffer_->getListNode(currentNodePtr);
-
-        long neighborNumber=0;
-        uint32_t* nodeNeighbors;
-
-        while(true){
-            nodeNeighbors=currentListNode->getNeighborsPtr();
-            //For every neighbors inside the current list node
-            neighborNumber=currentListNode->getNeighborCount();
-            for(uint32_t i = 0; i < neighborNumber; i++){
-                if(this->scc_->findNodeStronglyConnectedComponentID(nodeNeighbors[i])==0){
-                    wLowLink=strongConnect(nodeNeighbors[i],index,stack,onStack);
-                    vLowlink=((vLowlink < wLowLink) ? vLowlink : wLowLink);
+            if(this->scc_->findNodeStronglyConnectedComponentID(v->nodeNeighbors[v->nextNeighbor])==0){
+                this->scc_->setStronglyConnectedComponentID(v->nodeNeighbors[v->nextNeighbor],index);
+                SccNode* w=new SccNode;
+                w->node=v->nodeNeighbors[v->nextNeighbor];
+                w->index=index;
+                w->lowlink=index;
+                index++;
+                stack->push(w->node);
+                onStack[w->node]=true;
+                w->currentNodePtr=this->outgoingIndex_->getListHead(w->node);
+                if(w->currentNodePtr != PTR_NULL){
+                    w->currentListNode=this->outgoingBuffer_->getListNode(w->currentNodePtr);
+                    w->nodeNeighbors=w->currentListNode->getNeighborsPtr();
+                    w->neighborNumber=w->currentListNode->getNeighborCount();
+                    w->nextNeighbor=-1;
                 }
-                else{
-                    wIndex=this->scc_->findNodeStronglyConnectedComponentID(nodeNeighbors[i]);
-                    if(onStack[nodeNeighbors[i]])
-                        vLowlink=((vLowlink < wIndex) ? vLowlink : wIndex);
+                w->previous=v;
+                v=w;
+            }
+            else{
+                wIndex=this->scc_->findNodeStronglyConnectedComponentID(v->nodeNeighbors[v->nextNeighbor]);
+                if(onStack[v->nodeNeighbors[v->nextNeighbor]])
+                    v->lowlink=((v->lowlink < wIndex) ? v->lowlink : wIndex);
+            }
+
+            v->nextNeighbor++;
+            //Get the next list node pointer from the current one
+            if(v->nextNeighbor==v->neighborNumber && v->currentNodePtr != PTR_NULL){
+                v->currentNodePtr=v->currentListNode->getNextListNode();
+                if(v->currentNodePtr != PTR_NULL){
+                    v->currentListNode=this->outgoingBuffer_->getListNode(v->currentNodePtr);
+                    v->nodeNeighbors=v->currentListNode->getNeighborsPtr();
+                    v->neighborNumber=v->currentListNode->getNeighborCount();
+                    v->nextNeighbor=0;
                 }
             }
-            //Get the next list node pointer from the current one
-            currentNodePtr=currentListNode->getNextListNode();
-            if(currentNodePtr == PTR_NULL)
-                break;
-            else
-                currentListNode=this->outgoingBuffer_->getListNode(currentNodePtr);
         }
-    }
-    if(vLowlink == vIndex){
-        Component* component=new Component;
-        uint32_t componentId=this->scc_->getComponentsCount()+1;
-        component->component_id=componentId;
-        uint32_t sccNodesNumber=stack->count(node);
-        component->included_nodes_count=sccNodesNumber;
-        component->included_node_ids=new uint32_t[sccNodesNumber];
-        component->componentNeighborsIncoming=(uint32_t*)malloc(10*sizeof(uint32_t));
-        component->neighborNumberIncoming=0;
-        component->neighborMatrixSizeIncoming=10;
-        component->componentNeighborsOutgoing=(uint32_t*)malloc(10*sizeof(uint32_t));
-        component->neighborNumberOutgoing=0;
-        component->neighborMatrixSizeOutgoing=10;
-        uint32_t newNode;
+        else{
+            if(v->lowlink == v->index){
+                Component* component=new Component;
+                uint32_t componentId=this->scc_->getComponentsCount()+1;
+                component->component_id=componentId;
+                uint32_t sccNodesNumber=stack->count(v->node);
+                component->included_nodes_count=sccNodesNumber;
+                component->included_node_ids=new uint32_t[sccNodesNumber];
+                component->componentNeighborsIncoming=(uint32_t*)malloc(10*sizeof(uint32_t));
+                component->neighborNumberIncoming=0;
+                component->neighborMatrixSizeIncoming=10;
+                component->componentNeighborsOutgoing=(uint32_t*)malloc(10*sizeof(uint32_t));
+                component->neighborNumberOutgoing=0;
+                component->neighborMatrixSizeOutgoing=10;
+                uint32_t newNode;
 
-        for(uint32_t i=0;i<sccNodesNumber;i++){
-            newNode= stack->pop();
-            onStack[newNode]=false;
-            component->included_node_ids[i]=newNode;
-            this->scc_->setStronglyConnectedComponentID(newNode,componentId);
+                for(uint32_t i=0;i<sccNodesNumber;i++){
+                    newNode= stack->pop();
+                    onStack[newNode]=false;
+                    component->included_node_ids[i]=newNode;
+                    this->scc_->setStronglyConnectedComponentID(newNode,componentId);
+                }
+                this->scc_->setComponent(component);
+            }
+
+            if(v->previous!=NULL){
+                SccNode* prev=v->previous;
+                prev->lowlink=((prev->lowlink < v->lowlink) ? prev->lowlink : v->lowlink);
+                delete v;
+                v=prev;
+            }
+            else{
+                break;
+            }
         }
-        this->scc_->setComponent(component);
     }
-    return vLowlink;
 }
 
 bool StaticGraph::estimateStronglyConnectedComponents(){
@@ -114,6 +144,7 @@ bool StaticGraph::estimateStronglyConnectedComponents(){
         }
     }
 
+    cout << "components:" << this->scc_->getComponentsCount() << endl;
     delete stack;
     free(onStack);
     return true;
@@ -705,4 +736,3 @@ long StaticGraph::threadEstimateShortestPathPrunned(uint32_t source_node, uint32
 
     return -1;
 }
-

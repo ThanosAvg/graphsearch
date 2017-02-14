@@ -1,6 +1,8 @@
 #ifndef SCC_H
 #define SCC_H
 
+#include "types.h"
+#include "list_node.h"
 #include <stdint.h>
 
 struct Component{
@@ -17,9 +19,16 @@ struct Component{
     uint32_t neighborMatrixSizeIncoming;
 };
 
-struct ComponentCursor{
-    Component* component_ptr; // pointer to current’s iteration component...
-    // Any other necessary information in order to move to next component in the vector
+struct SccNode{
+    uint32_t node;
+    uint32_t index;
+    uint32_t lowlink;
+    ptr currentNodePtr;
+    ListNode* currentListNode;
+    uint32_t* nodeNeighbors;
+    uint32_t nextNeighbor;
+    uint32_t neighborNumber;
+    struct SccNode* previous;
 };
 
 class SCC{
@@ -28,7 +37,6 @@ public:
     ~SCC();
 
     uint32_t findNodeStronglyConnectedComponentID(uint32_t);
-    bool next_StronglyConnectedComponentID(ComponentCursor*);
     void setComponent(Component*);
     Component* getComponent(uint32_t);
     uint32_t getComponentsCount();

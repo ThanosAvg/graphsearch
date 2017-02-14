@@ -26,7 +26,7 @@ public:
     //virtual long query(uint32_t from, uint32_t to);
 
     virtual long threadSafeQuery(uint32_t from, uint32_t to,uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version) = 0;
-    
+
     bool expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
         uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors);
 protected:
@@ -58,7 +58,7 @@ public:
     ~StaticGraph();
 
     //SCC related functions
-    uint32_t strongConnect(uint32_t node,uint32_t &index,Stack* stack,bool* onStack);
+    void strongConnect(uint32_t node,uint32_t &index,Stack* stack,bool* onStack);
     bool estimateStronglyConnectedComponents();
     void estimateComponentsNeighbors(char select);
     bool expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
@@ -89,4 +89,3 @@ private:
     GrailIndex* grailIndexIncoming_;
 };
 #endif
-
