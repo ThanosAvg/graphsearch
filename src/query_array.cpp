@@ -1,8 +1,8 @@
+#include "query_array.h"
+
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
-
-#include "query_array.h"
 
 QueryArray::QueryArray(uint32_t initialQueryDataSize, uint32_t initialBurstDataSize){
     dataArray_ = (QueryData *) malloc(sizeof(QueryData) * initialQueryDataSize);
@@ -21,6 +21,7 @@ QueryArray::~QueryArray(){
 }
 
 bool QueryArray::addQuery(uint32_t from, uint32_t to, uint32_t id, uint32_t version){
+    // Stores query information data in query array
     if(currentDataSize_ >= maxDataSize_){
         QueryData* resized;
         resized = (QueryData *) realloc(dataArray_, maxDataSize_ * sizeof(QueryData) * 2);
@@ -42,14 +43,17 @@ bool QueryArray::addQuery(uint32_t from, uint32_t to, uint32_t id, uint32_t vers
 }
 
 QueryData* QueryArray::getQuery(uint32_t index){
+    // Gets query information data at given position
     return &(dataArray_[index]);
 }
 
 uint32_t QueryArray::getCurrentQueryDataSize(){
+    // Gets the current query data size
     return currentDataSize_;
 }
 
 bool QueryArray::addBurst(uint32_t line){
+    // Stores burst information to query array
     if(currentBurstSize_ >= maxBurstSize_){
         uint32_t* resized;
         resized = (uint32_t *) realloc(burstArray_, currentBurstSize_ * sizeof(uint32_t) * 2);
@@ -67,25 +71,26 @@ bool QueryArray::addBurst(uint32_t line){
 }
 
 uint32_t QueryArray::getBurst(uint32_t index){
+    // Gets burst information from query array
     return burstArray_[index];
 }
 
 uint32_t QueryArray::getCurrentBurstSize(){
+    // Gets current burst size
     return currentBurstSize_;
 }
 
 void QueryArray::setResult(uint32_t index, long result){
+    // Sets result to be outputed at given index
     dataArray_[index].result = result;
 }
 
 void QueryArray::printResult(uint32_t index){
+    // Prints result at given index
     std::printf("%ld\n", dataArray_[index].result);
-    //std::cout << dataArray_[index].result << std::endl;
-    //std::cout << dataArray_[index].queryFrom << " " <<
-    //dataArray_[index].queryTo << " " <<
-    //dataArray_[index].result << std::endl;
 }
 
 long QueryArray::getResult(uint32_t index){
+    // Gets result at given index
     return dataArray_[index].result;
 }

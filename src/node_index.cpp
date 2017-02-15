@@ -1,18 +1,16 @@
-#include <iostream>
-#include <stdlib.h>
 #include "node_index.h"
 #include "buffer.h"
+
+#include <iostream>
+#include <stdlib.h>
 
 NodeIndex::NodeIndex(Buffer* buffer){
     this->buffer_ = buffer;
     this->currentSize_ = this->startSize_;
-    std::cout << "Started allocating array" << std::endl;
-    //this->array_ = (NodeIndexData*) calloc(this->currentSize_, sizeof(NodeIndexData));
     this->array_ = (NodeIndexData*) malloc(this->currentSize_ * sizeof(NodeIndexData));
     this->cursor_ = -1;
     this->maxId_ = -1;
     memset(this->array_, 0, this->currentSize_ * sizeof(NodeIndexData));
-    std::cout << "Array allocated" << std::endl;
 }
 
 NodeIndex::~NodeIndex(){
@@ -24,14 +22,10 @@ uint32_t NodeIndex::getCurrentSize(){
 }
 
 uint32_t NodeIndex::getMaxSize(){
-    return getCurrentSize(); // TODO: deprecate this
+    return getCurrentSize();
 }
 
 bool NodeIndex::insertNode(uint32_t nodeId){
-    //if(this->buffer_ == 0){
-    //    return false;
-    //}
-
     // Create new node in buffer
     ptr nodeLoc;
     nodeLoc = this->buffer_->allocNewNode();
@@ -42,9 +36,7 @@ bool NodeIndex::insertNode(uint32_t nodeId){
     nodeData.lastFree_ = nodeLoc;
     nodeData.flag = 1;
 
-    //this->hash_->add(nodeData, nodeId); // Data , NodeId pair
     if(nodeId >= this->currentSize_){
-        std::cout << "Scaling started..." << std::endl;
         // Scale array
         NodeIndexData *resized;
         int ntimes = 2;
@@ -58,7 +50,6 @@ bool NodeIndex::insertNode(uint32_t nodeId){
             return false;
         }
         this->array_ = resized;
-        std::cout << "Scaling done" << std::endl;
         this->currentSize_ = this->currentSize_ * ntimes + 1;
     }
 
