@@ -1,16 +1,14 @@
 #ifndef NODE_INDEX_H
 #define NODE_INDEX_H
 
-#include <stdint.h>
-
 #include "types.h"
 #include "buffer.h"
 #include "hashtable.h"
 
-//typedef ptr NodeIndexData;
+#include <stdint.h>
+
 struct NodeIndexData{
     ptr nodeLoc_;
-    //uint32_t neighborCount_;
     long neighborCount_;
     ptr lastFree_;
     int flag;
