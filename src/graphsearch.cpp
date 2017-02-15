@@ -6,8 +6,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <cstdlib>
-//#define STATIC
-#define DYNAMIC
+#define STATIC
+//#define DYNAMIC
 
 int main(){
 #ifdef STATIC
@@ -28,6 +28,10 @@ int main(){
     while(1){
         //std::cin.get(myChar);
         myChar = getc(stdin);
+        if(myChar == 'A' || myChar == 'Q'){
+            ungetc(myChar, stdin); // Fix for problematic datasets
+            break;
+        }
         if(myChar == 'S' || myChar == EOF){
             break;
         }
@@ -86,7 +90,12 @@ int main(){
     while(1){
         //std::cin.get(myChar);
         myChar = getc(stdin);
+        if(myChar == 'A' || myChar == 'Q'){
+            ungetc(myChar, stdin); // Fix for problematic datasets
+            break;
+        }
         if(myChar == 'S' || myChar == EOF){
+            return -1;
             break;
         }
         else{
