@@ -10,14 +10,13 @@
 class JobScheduler{
 public:
     JobScheduler(QueryArray* queryArray, Graph* graph);
-    ~JobScheduler();
 
     void parallelQueryExecution();
     static void* staticFunctionPointer(void * argp);
     void threadJobExecution();
     Job* getJob();
 private:
-    static const int threadPoolSize_ = 4;
+    static const int threadPoolSize_ = 8;
     pthread_t threadPool_[threadPoolSize_];
     QueryArray* queryArray_;
     Graph* graph_;
