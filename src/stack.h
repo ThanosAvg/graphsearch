@@ -7,11 +7,12 @@
 class Stack{
 public:
     Stack();
-    void push(uint32_t);
-    uint32_t pop();
-    uint32_t count(uint32_t);
-    bool isEmpty();
     ~Stack();
+    
+    void push(uint32_t node);
+    uint32_t pop();
+    uint32_t count(uint32_t targetNode);
+    bool isEmpty();
 private:
     static const uint32_t initialSize_ = 1024;
 
