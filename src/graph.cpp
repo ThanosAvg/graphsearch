@@ -9,6 +9,8 @@
 using namespace std;
 
 Graph::Graph(){
+    //Graph Constructor
+
     this->incomingBuffer_ = new Buffer();
     this->outgoingBuffer_ = new Buffer();
     this->incomingIndex_ = new NodeIndex(this->incomingBuffer_);
@@ -19,6 +21,21 @@ Graph::Graph(){
     this->endVisitedKey = 0;
     this->startVisitedSize = 0;
     this->endVisitedSize = 0;
+}
+
+Graph::~Graph(){
+    //Graph destructor
+
+    delete incomingBuffer_;
+    delete outgoingBuffer_;
+    delete incomingIndex_;
+    delete outgoingIndex_;
+    if(startVisited!=NULL){
+        free(startVisited);
+    }
+    if(endVisited!=NULL){
+        free(endVisited);
+    }
 }
 
 bool Graph::add(uint32_t from, uint32_t to){
@@ -215,95 +232,6 @@ bool Graph::expandLevel(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t
     return false;
 }
 
-/*
-long Graph::query(uint32_t from, uint32_t to){
-    // Finds and returns the path distance from the source node to the target node.
-    // Returns -1 if a paths does not exist.
-
-    if(from==to)
-        return 0;
-
-    // Validate nodes
-    if(this->outgoingIndex_->getListHead(from) == PTR_NULL ||
-       this->incomingIndex_->getListHead(to) == PTR_NULL){
-        return -1;
-    }
-
-    //Create visited arrays if not created
-    if(this->startVisited==NULL){
-        this->startVisitedSize=this->outgoingIndex_->getCurrentSize();
-        this->startVisited=(uint32_t*)calloc(this->startVisitedSize,sizeof(uint32_t));
-    }
-    //else if(this->startVisitedSize<this->outgoingIndex_->getCurrentSize())
-        //cout << "startVistedSize Increased" << endl;
-    if(this->endVisited==NULL){
-        this->endVisitedSize=this->incomingIndex_->getCurrentSize();
-        this->endVisited=(uint32_t*)calloc(this->endVisitedSize,sizeof(uint32_t));
-    }
-    //else if(this->endVisitedSize<this->incomingIndex_->getCurrentSize())
-        //cout << "endVistedSize Increased" << endl;
-
-    //Check if maximum key has been reached and reset the visited arrays
-    if(this->startVisitedKey==UINT_MAX){
-        memset(this->startVisited,0,this->outgoingIndex_->getCurrentSize());
-        this->startVisitedKey=0;
-    }
-    if(this->endVisitedKey==UINT_MAX){
-        memset(this->endVisited,0,this->incomingIndex_->getCurrentSize());
-        this->endVisitedKey=0;
-    }
-    //Increase the visited key of the current search
-    this->startVisitedKey++;
-    this->endVisitedKey++;
-
-    //Create two queues for each side for bi-bfs
-    Queue startQueue, endQueue;
-
-    //Push into the queues,the initial nodes for each side(level 0)
-    startQueue.enqueue(from);
-    endQueue.enqueue(to);
-    startQueue.enqueue(LEVEL_END);
-    endQueue.enqueue(LEVEL_END);
-
-    //Current length measures the depth of search(levels) in each side
-    long startCurrentLength,endCurrentLength;
-    uint32_t startCurrentNeighbors=0;
-    uint32_t endCurrentNeighbors=0;
-    startCurrentLength = 0;
-    endCurrentLength = 0;
-
-    while(true){
-        // Run bidirectional bfs for source and target node
-
-        //Choose only the side with less neighbors in its queue
-        if(startCurrentNeighbors <= endCurrentNeighbors){
-            startCurrentNeighbors = 0;
-            //Expand the nodes currently in queue(one level),and add the next level nodes
-            if(expandLevel(this->outgoingIndex_,this->outgoingBuffer_,&startQueue,this->startVisitedKey,
-                this->startVisited,this->endVisitedKey,this->endVisited,startCurrentNeighbors)==true)
-                return startCurrentLength+endCurrentLength;
-            startCurrentLength++;
-            if(startQueue.isEmpty())
-                return -1;
-            startQueue.enqueue(LEVEL_END);
-        }
-        else{
-            endCurrentNeighbors = 0;
-            if(expandLevel(this->incomingIndex_,this->incomingBuffer_,&endQueue,this->endVisitedKey,
-                this->endVisited,this->startVisitedKey,this->startVisited,endCurrentNeighbors)==true)
-                return startCurrentLength+endCurrentLength;
-            endCurrentLength++;
-            if(endQueue.isEmpty())
-                return -1;
-            endQueue.enqueue(LEVEL_END);
-        }
-
-    }
-
-    return -1;
-}
-*/
-
 uint32_t Graph::getOutgoingIndexSize(){
     return this->outgoingIndex_->getCurrentSize();
 }
@@ -311,15 +239,3 @@ uint32_t Graph::getOutgoingIndexSize(){
 uint32_t Graph::getIncomingIndexSize(){
     return this->incomingIndex_->getCurrentSize();
 }
-
-Graph::~Graph(){
-    delete incomingBuffer_;
-    delete outgoingBuffer_;
-    delete incomingIndex_;
-    delete outgoingIndex_;
-    if(startVisited!=NULL)
-        free(startVisited);
-    if(endVisited!=NULL)
-        free(endVisited);
-}
-

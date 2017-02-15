@@ -13,10 +13,6 @@ int main(){
 #ifdef STATIC
     std::cout << "STATIC VERSION" << std::endl;
     StaticGraph graph;
-    graph.estimateStronglyConnectedComponents();
-    graph.estimateComponentsNeighbors('i');
-    graph.estimateComponentsNeighbors('o');
-    graph.buildGrailIndex();
 
     QueryArray qarr(5000, 5000);
     int line = 0;
@@ -43,6 +39,11 @@ int main(){
             graph.add(from, to);
         }
     }
+
+    graph.estimateStronglyConnectedComponents();
+    graph.estimateComponentsNeighbors('i');
+    graph.estimateComponentsNeighbors('o');
+    graph.buildGrailIndex();
 
     while(1){
         myChar = getc(stdin);

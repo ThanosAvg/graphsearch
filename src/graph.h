@@ -23,7 +23,6 @@ public:
 
     // Takes 2 node ids and calculates the cost of the path between them, or -1 if either no
     // path exists or invalid input is given
-    //virtual long query(uint32_t from, uint32_t to);
 
     virtual long threadSafeQuery(uint32_t from, uint32_t to,uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version) = 0;
 
@@ -61,12 +60,11 @@ public:
     void strongConnect(uint32_t node,uint32_t &index,Stack* stack,bool* onStack);
     bool estimateStronglyConnectedComponents();
     void estimateComponentsNeighbors(char select);
+
     bool expandLevelinComponent(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
         uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors, uint32_t componentId);
     bool expandLevelPrunned(NodeIndex* index, Buffer* buffer, Queue* queue, uint32_t myVisitedKey,
         uint32_t* myVisited, uint32_t targetVisitedKey, uint32_t* targetVisited, uint32_t& currentNeighbors,GrailIndex* grail,uint32_t target_node);
-    long estimateShortestPathStronglyConnectedComponents(uint32_t source_node, uint32_t target_node);
-    long estimateShortestPathPrunned(uint32_t source_node, uint32_t target_node);
 
     //Threads
     long threadSafeQuery(uint32_t from, uint32_t to,uint32_t startVisitedKey,uint32_t* startVisited, uint32_t endVisitedKey, uint32_t* endVisited, uint32_t version);
@@ -80,8 +78,6 @@ public:
         bool* visited, char select);
     void buildGrailIndex();
     GrailAnswer isReachableGrailIndex(uint32_t source_node, uint32_t target_node, GrailIndex* grail);
-
-    long staticQuery(uint32_t,uint32_t);
 
 private:
     SCC* scc_;

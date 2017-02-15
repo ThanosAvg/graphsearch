@@ -12,14 +12,14 @@ struct grailNode{
 
 class GrailIndex{
 public:
-    GrailIndex(uint32_t);
+    GrailIndex(uint32_t indexSize);
     ~GrailIndex();
 
-    uint32_t getMinRank(int,uint32_t);
-    uint32_t getRank(int,uint32_t);
-    uint32_t setMinRank(int,uint32_t, uint32_t);
-    uint32_t setRank(int,uint32_t, uint32_t);
-    bool isSubset(uint32_t, uint32_t);
+    uint32_t getMinRank(int label, uint32_t indexPosition);
+    uint32_t getRank(int label, uint32_t indexPosition);
+    uint32_t setMinRank(int label, uint32_t indexPosition, uint32_t minRank);
+    uint32_t setRank(int label, uint32_t indexPosition, uint32_t rank);
+    bool isSubset(uint32_t source, uint32_t target);
     static const uint32_t labels = 4;
 
 private:

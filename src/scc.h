@@ -6,9 +6,9 @@
 #include <stdint.h>
 
 struct Component{
-    uint32_t component_id; //current component id
-    uint32_t included_nodes_count; //number of nodes in component
-    uint32_t* included_node_ids;//ids of included nodes
+    uint32_t component_id;
+    uint32_t included_nodes_count;
+    uint32_t* included_node_ids;
 
     uint32_t* componentNeighborsOutgoing;
     uint32_t neighborNumberOutgoing;
@@ -33,14 +33,14 @@ struct SccNode{
 
 class SCC{
 public:
-    SCC(uint32_t);
+    SCC(uint32_t numberOfVertices);
     ~SCC();
 
-    uint32_t findNodeStronglyConnectedComponentID(uint32_t);
-    void setComponent(Component*);
-    Component* getComponent(uint32_t);
+    uint32_t findNodeStronglyConnectedComponentID(uint32_t nodeId);
+    void setComponent(Component* component);
+    Component* getComponent(uint32_t component);
+    void setStronglyConnectedComponentID(uint32_t nodeId, uint32_t componentNum);
     uint32_t getComponentsCount();
-    void setStronglyConnectedComponentID(uint32_t,uint32_t);
 
 private:
     static const uint32_t initialCmatrixLength_ = 1024;

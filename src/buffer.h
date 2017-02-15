@@ -1,11 +1,11 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include <stdint.h>
 #include "list_node.h"
 #include "types.h"
+#include <stdint.h>
 
-const uint32_t INITIAL_BUFFER_SIZE = 1000000;
+const uint32_t INITIAL_BUFFER_SIZE = 1048576;
 
 class Buffer{
 public:
@@ -17,7 +17,7 @@ public:
     ptr allocNewNode();
 
     // Finds the list node at the given offset and returns a pointer to it
-    ListNode* getListNode(ptr);
+    ListNode* getListNode(ptr nodeIndex);
 private:
     ListNode* bufferSpace_;
     ptr numberOfNodes_;
