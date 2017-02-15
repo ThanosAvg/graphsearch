@@ -11,7 +11,6 @@ JobScheduler::JobScheduler(QueryArray* queryArray,Graph* graph){
     this->nextJob_=1;
     this->jobNumber_=queryArray->getCurrentBurstSize();
     this->graph_=graph;
-    std::cout << "THREAD POOL SIZE: " << this->threadPoolSize_ << std::endl;
 }
 
 void JobScheduler::parallelQueryExecution(){
@@ -99,8 +98,4 @@ Job* JobScheduler::getJob(){
     }
     pthread_mutex_unlock(&job_mutex_);
     return newJob;
-}
-
-JobScheduler::~JobScheduler(){
-
 }
