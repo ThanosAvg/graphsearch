@@ -244,7 +244,6 @@ bool DynamicGraph::expandLevelWithVersion(NodeIndex* index, Buffer* buffer, Queu
                     // If our version is less than the egde's version
                     // ignore the edge
                     if(version < nodeProperties[i]){
-                        //std::cout << "Versions: " << version << " " << nodeProperties[i] << std::endl;
                         continue;
                     }
                     //If current neighbor has been found on the other side:return
@@ -274,17 +273,10 @@ long DynamicGraph::threadSafeQuery(uint32_t from, uint32_t to, uint32_t startVis
     comp1 = this->connectedComponents_.findNodeConnectedComponentID(from);
     comp2 = this->connectedComponents_.findNodeConnectedComponentID(to);
 
-    /*if(!this->connectedComponents_.areConnected(comp1, comp2)){
-        return -1; // There is no way a path can exist between these
-    }*/
-
     /* Check if a connection exists even in a future version.
      * False positives dont hurt. */
 
     if(comp1 == -1 || comp2 == -1){
-        return -1;
-    }
-    else if(connectedComponents_.updateIndex[comp1] == -1 && connectedComponents_.updateIndex[comp2] == -1){
         return -1;
     }
     else if(!(connectedComponents_.updateIndex[comp1] == connectedComponents_.updateIndex[comp2])){
